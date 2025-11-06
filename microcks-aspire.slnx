@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Aspire.Hosting.Microcks/Aspire.Hosting.Microcks.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Aspire.Hosting.Microcks.Tests/Aspire.Hosting.Microcks.Tests.csproj" />
+    <Project Path="tests/Aspire.Microcks.Testing/Aspire.Microcks.Testing.csproj" />
+  </Folder>
+</Solution>
