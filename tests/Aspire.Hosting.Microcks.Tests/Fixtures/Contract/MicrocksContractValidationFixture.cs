@@ -15,34 +15,93 @@
 //
 //
 
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Aspire.Hosting.Microcks;
 using Xunit;
 
 namespace Aspire.Microcks.Testing.Fixtures.Contract;
 
 /// <summary>
-/// Example derived fixture that adds two container resources (bad/good implementations)
+/// Fixture that adds two container resources (bad/good implementations)
 /// to the shared distributed application builder before Microcks is configured.
 /// </summary>
-public sealed class MicrocksContractValidationFixture : SharedMicrocksFixture
+public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposable
 {
+    public TestDistributedApplicationBuilder Builder { get; private set; } = default!;
+    public DistributedApplication App { get; private set; } = default!;
+    public MicrocksResource MicrocksResource { get; private set; } = default!;
+
     private const string BAD_PASTRY_IMAGE = "quay.io/microcks/contract-testing-demo:01";
     private const string GOOD_PASTRY_IMAGE = "quay.io/microcks/contract-testing-demo:02";
 
-    protected override void ConfigureBuilder(TestDistributedApplicationBuilder builder)
+    public async ValueTask InitializeAsync()
     {
+        // Create builder without per-test ITestOutputHelper to avoid recreating logging per test
+        Builder = TestDistributedApplicationBuilder.Create(o => { });
+
+        // Configure Microcks with the artifacts used by tests so services are available
+        var microcksBuilder = Builder.AddMicrocks("microcks")
+            .WithHostNetworkAccess("host.alias.testing") // Prevent DNS resolution issues from containers (podman, docker desktop, etc.)
+            .WithSnapshots(Path.Combine(AppContext.BaseDirectory, "resources", "microcks-repository.json"))
+            .WithMainArtifacts(
+                Path.Combine(AppContext.BaseDirectory, "resources", "apipastries-openapi.yaml"),
+                Path.Combine(AppContext.BaseDirectory, "resources", "subdir", "weather-forecast-openapi.yaml")
+            )
+            .WithSecondaryArtifacts(
+                Path.Combine(AppContext.BaseDirectory, "resources", "apipastries-postman-collection.json")
+            )
+            .WithMainRemoteArtifacts("https://raw.githubusercontent.com/microcks/microcks/master/samples/APIPastry-openapi.yaml");
+
         // Add bad implementation container
         var badImpl = new ContainerResource("bad-impl");
-        builder.AddResource(badImpl)
+        Builder.AddResource(badImpl)
             .WithImage(BAD_PASTRY_IMAGE)
-            .WithHttpEndpoint(targetPort: 3001, name: "http");
+            .WithHttpEndpoint(targetPort: 3001, name: "http")
+            .WithReferenceRelationship(microcksBuilder.Resource);
 
         // Add good implementation container
         var goodImpl = new ContainerResource("good-impl");
-        builder.AddResource(goodImpl)
+        Builder.AddResource(goodImpl)
             .WithImage(GOOD_PASTRY_IMAGE)
-            .WithHttpEndpoint(targetPort: 3002, name: "http");
+            .WithHttpEndpoint(targetPort: 3002, name: "http")
+            .WithReferenceRelationship(microcksBuilder.Resource);
+
+        App = Builder.Build();
+        await App.StartAsync(TestContext.Current.CancellationToken)
+            .ConfigureAwait(false);
+
+        MicrocksResource = microcksBuilder.Resource;
+    }
+
+    /// <summary>
+    /// Stops the distributed application and disposes the builder.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (App is not null)
+            {
+                await App.StopAsync(TestContext.Current.CancellationToken)
+                    .ConfigureAwait(false);
+                App.Dispose();
+            }
+        }
+        catch
+        {
+            // swallow, we're tearing down tests
+        }
+
+        Builder?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        _ = DisposeAsync();
     }
 
 }

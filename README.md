@@ -17,7 +17,7 @@ In your AppHost Program.cs:
 
 ```csharp
 var microcks = builder.AddMicrocks("microcks")
-    .WithImage("microcks/microcks-uber:latest");
+    .WithImage("microcks/microcks-uber", "latest");
 ```
 
 ### Import content in Microcks
@@ -79,9 +79,9 @@ With Aspire, you can do it like this using the MicrocksProvider:
 
 ```csharp
 var app = orderHostAspireFactory.App;
-var microcksProvider = app.CreateMicrocksProvider("microcks");
+var microcksClient = app.CreateMicrocksClient("microcks");
 
-bool isVerified = await microcksProvider.VerifyAsync(
+bool isVerified = await microcksClient.VerifyAsync(
     "API Pastries", "0.0.1", 
     cancellationToken: TestContext.Current.CancellationToken);
 Assert.True(isVerified, "API should be verified successfully");
@@ -90,13 +90,13 @@ Assert.True(isVerified, "API should be verified successfully");
 Or check the invocations count like this:
 
 ```csharp
-double initialCount = await microcksProvider.GetServiceInvocationsCountAsync(
+double initialCount = await microcksClient.GetServiceInvocationsCountAsync(
     "API Pastries", "0.0.1", 
     cancellationToken: TestContext.Current.CancellationToken);
 
 // ... perform your API calls ...
 
-double finalCount = await microcksProvider.GetServiceInvocationsCountAsync(
+double finalCount = await microcksClient.GetServiceInvocationsCountAsync(
     "API Pastries", "0.0.1", 
     cancellationToken: TestContext.Current.CancellationToken);
 Assert.Equal(initialCount + expectedCalls, finalCount);
@@ -105,41 +105,11 @@ Assert.Equal(initialCount + expectedCalls, finalCount);
 
 ### Launching contract-tests with Aspire
 
-If you want to ensure that your application under test is conformant to an OpenAPI contract (or other type of contract), you can launch a Microcks contract/conformance test using Aspire's distributed application model and MicrocksProvider integration.
-
+If you want to ensure that your application under test is conformant to an OpenAPI contract (or other type of contract), you can launch a Microcks contract/conformance test using Aspire's distributed application model and MicrocksClient integration.
 
 Here is an example using Aspire and the Microcks extension, fully aligned with the test code:
 
-```csharp
-[Fact]
-public async Task TestOpenApiContract()
-{
-    // Arrange
-    var app = orderHostAspireFactory.App;
-    int port = app.GetEndpoint("order-api").Port;
-
-    // Act
-    TestRequest request = new()
-    {
-        ServiceId = "Order Service API:0.1.0",
-        RunnerType = TestRunnerType.OPEN_API_SCHEMA,
-        TestEndpoint = $"http://host.docker.internal:{port}/api"
-    };
-    var microcksProvider = app.CreateMicrocksProvider("microcks");
-    var testResult = await microcksProvider.TestEndpointAsync(request, TestContext.Current.CancellationToken);
-
-    // Assert
-    // You may inspect complete response object with following:
-    var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
-    testOutputHelper.WriteLine(json);
-
-    Assert.True(testResult.Success);
-    Assert.False(testResult.InProgress, "Test should not be in progress");
-    Assert.Single(testResult.TestCaseResults);
-}
-```
-
-You can also use service discovery for endpoint resolution (note: endpoint name is case-sensitive and must match your configuration, e.g., "order-api" or "Order-Api"):
+You can use service discovery for endpoint resolution (note: endpoint name is case-sensitive and must match your configuration, e.g., "order-api" or "Order-Api"):
 
 ```csharp
 [Fact]
@@ -150,12 +120,43 @@ public async Task TestOpenApiContract_WithServiceDiscovery()
     {
         ServiceId = "Order Service API:0.1.0",
         RunnerType = TestRunnerType.OPEN_API_SCHEMA,
-        TestEndpoint = $"{app.GetEndpoint(\"order-api\")}/api"
+        TestEndpoint = $"http://order-api:3002/api" // Container Host + Target Port
     };
-    var microcksProvider = app.CreateMicrocksProvider("microcks");
-    var testResult = await microcksProvider.TestEndpointAsync(request, TestContext.Current.CancellationToken);
+    var microcksClient = app.CreateMicrocksClient("microcks");
+    var testResult = await microcksClient.TestEndpointAsync(request, TestContext.Current.CancellationToken);
     var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
     testOutputHelper.WriteLine(json);
+    Assert.True(testResult.Success);
+    Assert.False(testResult.InProgress, "Test should not be in progress");
+    Assert.Single(testResult.TestCaseResults);
+}
+```
+
+And here is the same example but using direct host access (note: ensure that your Microcks instance can access the host.docker.internal address):
+
+```csharp
+[Fact]
+public async Task TestOpenApiContract()
+{
+    // Arrange
+    var app = orderHostAspireFactory.App;
+    int port = app.GetEndpoint("order-api").Port; // Get the mapped port
+
+    // Act
+    TestRequest request = new()
+    {
+        ServiceId = "Order Service API:0.1.0",
+        RunnerType = TestRunnerType.OPEN_API_SCHEMA,
+        TestEndpoint = $"http://host.docker.internal:{port}/api"
+    };
+    var microcksClient = app.CreateMicrocksClient("microcks");
+    var testResult = await microcksClient.TestEndpointAsync(request, TestContext.Current.CancellationToken);
+
+    // Assert
+    // You may inspect complete response object with following:
+    var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
+    testOutputHelper.WriteLine(json);
+
     Assert.True(testResult.Success);
     Assert.False(testResult.InProgress, "Test should not be in progress");
     Assert.Single(testResult.TestCaseResults);
@@ -222,7 +223,7 @@ var microcks = builder.AddMicrocks("microcks")
 For Postman contract-testing, you can use the same TestRequest pattern with the MicrocksProvider:
 
 ```csharp
-var microcksProvider = app.CreateMicrocksProvider("microcks");
+var microcksClient = app.CreateMicrocksClient("microcks");
 var testRequest = new TestRequest
 {
     ServiceId = "API Pastries:0.0.1",
@@ -231,7 +232,7 @@ var testRequest = new TestRequest
     Timeout = TimeSpan.FromSeconds(3)
 };
 
-TestResult testResult = await microcksProvider.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
+TestResult testResult = await microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
 ```
 
 **Note:** With Aspire, the complexity of managing multiple containers and networks is abstracted away. The distributed application model handles service discovery, networking, and lifecycle management automatically.
