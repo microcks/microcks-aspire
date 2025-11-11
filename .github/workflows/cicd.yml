@@ -1,0 +1,66 @@
+﻿name: 'Continuous Integration'
+
+on:
+  push:
+    paths-ignore:
+      - '.gitignore'
+      - 'LICENSE'
+      - '*.md'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '.gitignore'
+      - 'LICENSE'
+      - '*.md'
+
+env:
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_NOLOGO: 1
+  
+permissions: read-all
+
+jobs:
+  version:
+    name: Define Version
+    permissions:
+      contents: read
+    uses: ./.github/workflows/steps.dotnet-version.yml
+    with:
+      runs-on: ubuntu-latest
+    secrets: inherit
+
+  build_test:
+    name: 🔨 Build and test
+    needs:
+      - version
+    uses: ./.github/workflows/steps.dotnet-build-test.yml
+    with:
+      runs-on: ubuntu-latest
+      version: ${{ needs.version.outputs.version }}
+      publish-package: true
+      use-sonarcloud: true
+    secrets: inherit
+
+  publish_test:
+    name: 📊 Publish Test
+    permissions:
+      contents: read 
+      actions: read 
+      checks: write
+    needs:
+      - build_test
+    uses: ./.github/workflows/steps.publish-test-reporter.yml
+    with:
+      runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event_name == 'pull_request' }}
+    secrets: inherit
+
+  nuget_publish:
+    name: 📦 NuGet Publish
+    needs:
+      - build_test
+    if: ${{ needs.build_test.outputs.publish-package != false && github.actor != 'dependabot[bot]' }}
+    uses: ./.github/workflows/steps.dotnet-nuget-publish.yml
+    secrets: inherit
