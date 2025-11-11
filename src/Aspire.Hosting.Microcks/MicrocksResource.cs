@@ -17,7 +17,6 @@
 
 using System;
 using Aspire.Hosting.ApplicationModel;
-using Microsoft.Extensions.Logging;
 
 namespace Aspire.Hosting.Microcks;
 

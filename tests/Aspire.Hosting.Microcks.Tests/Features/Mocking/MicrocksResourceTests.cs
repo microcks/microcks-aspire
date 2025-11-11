@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Aspire.Hosting.Testing;
 using Aspire.Microcks.Testing.Fixtures.Mock;
 using Aspire.Hosting.Microcks.Clients;
+using Aspire.Microcks.Testing.Fixtures;
 
 namespace Aspire.Hosting.Microcks.Tests.Features.Mocking;
 
@@ -32,16 +33,9 @@ namespace Aspire.Hosting.Microcks.Tests.Features.Mocking;
 /// Uses a shared Microcks instance provided by <see cref="MicrocksMockingFixture"/>.
 /// </summary>
 [Collection(MicrocksMockingCollection.CollectionName)]
-public class MicrocksResourceTests
+public class MicrocksResourceTests(MicrocksMockingFixture fixture)
 {
-    private readonly MicrocksMockingFixture _fixture;
-    private readonly ITestOutputHelper _testOutputHelper;
-
-    public MicrocksResourceTests(MicrocksMockingFixture fixture, ITestOutputHelper testOutputHelper)
-    {
-        _fixture = fixture;
-        _testOutputHelper = testOutputHelper;
-    }
+    private readonly MicrocksMockingFixture _fixture = fixture;
 
     /// <summary>
     /// Builds a test distributed application with Microcks and ensures that

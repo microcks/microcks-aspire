@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <IsPackable>true</IsPackable>
+    <Nullable>enable</Nullable>
     <PackageTags>aspire integration hosting microcks</PackageTags>
     <Description>Microcks support for .NET Aspire.</Description>
   </PropertyGroup>

@@ -49,6 +49,10 @@ public static class MicrocksBuilderExtensions
             .WithImage(MicrocksContainerImageTags.Image, MicrocksContainerImageTags.Tag)
             .WithImageRegistry(MicrocksContainerImageTags.Registry)
             .WithEnvironment("OTEL_JAVAAGENT_ENABLED", "true")
+            .WithEnvironment(context =>
+            {
+                context.EnvironmentVariables["TEST_CALLBACK_URL"] = $"http://{context.Resource.Name}:8080";
+            })
             .WithOtlpExporter();
 
         builder.Services.TryAddLifecycleHook<MicrocksResourceLifecycleHook>();
@@ -167,5 +171,49 @@ public static class MicrocksBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder, nameof(builder));
 
         return builder.WithContainerRuntimeArgs($"--add-host={hostAlias}:host-gateway");
+    }
+
+    /// <summary>
+    /// Configures the Microcks resource to include and enable a Postman runner.
+    /// This allows Microcks to execute Postman collections for API mocking and testing.
+    /// </summary>
+    /// <param name="builder">The <see cref="IResourceBuilder{T}"/>.</param>
+    /// <param name="configurePostman">An optional action to further configure the Postman resource.</param>
+    /// <param name="containerName">An optional name for the Postman container. If not provided, a default name will be used.</param>
+    /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
+    public static IResourceBuilder<MicrocksResource> WithPostmanRunner(
+        this IResourceBuilder<MicrocksResource> microcksBuilder,
+        Action<IResourceBuilder<MicrocksPostmanResource>>? configurePostman = null,
+        string? containerName = null)
+    {
+        ArgumentNullException.ThrowIfNull(microcksBuilder, nameof(microcksBuilder));
+
+        containerName ??= $"{microcksBuilder.Resource.Name}-postman";
+
+        var distributedAppBuilder = microcksBuilder.ApplicationBuilder;
+        distributedAppBuilder.Services.TryAddLifecycleHook<MicrocksPostmanResourceLifecycleHook>();
+
+        var postmanResource = new MicrocksPostmanResource(containerName);
+
+        var postmanBuilder = distributedAppBuilder.AddResource(postmanResource)
+            .WithImage("microcks/microcks-postman-runtime", "latest")
+            .WithHttpEndpoint(targetPort: 3000, name: MicrocksPostmanResource.PrimaryEndpointName)
+            .WithImageRegistry(MicrocksContainerImageTags.Registry);
+
+        // Link Postman runner to Microcks main resource
+        microcksBuilder.WithParentRelationship(postmanResource)
+            .WaitFor(postmanBuilder)
+            .WithEnvironment(context =>
+            {
+                var postmanEndpoint = postmanResource.GetEndpoint("http");
+                var postmanUrl = postmanEndpoint.Property(EndpointProperty.Url);
+
+                context.EnvironmentVariables["POSTMAN_RUNNER_URL"] = postmanUrl;
+            });
+
+        // Give access to Microcks Postman configuration (Custom Image, tags, ...)
+        configurePostman?.Invoke(postmanBuilder);
+
+        return microcksBuilder;
     }
 }

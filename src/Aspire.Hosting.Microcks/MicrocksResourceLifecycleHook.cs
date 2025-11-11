@@ -175,22 +175,11 @@ internal sealed class MicrocksResourceLifecycleHook
     /// <param name="cancellationToken">A token to cancel waiting early.</param>
     private async Task GetMicrocksHealthyAsync(MicrocksResource microcksResource, CancellationToken cancellationToken)
     {
-        try
-        {
-            // Watch the logs of the Microcks resource until we find the line "Microcks server started"
-            await foreach (var batch in _resourceLoggerService.WatchAsync(microcksResource).WithCancellation(cancellationToken))
-            {
-                // Watch for the "Started MicrocksApplication" log line
-                if (batch.Any(line => line.Content.Contains("Started MicrocksApplication", StringComparison.OrdinalIgnoreCase)))
-                {
-                    break;
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Ignore cancellation while listening to logs
-        }
+        await microcksResource.WithWaitLogContainsAsync(
+            _resourceLoggerService,
+            "Started MicrocksApplication",
+            cancellationToken
+        );
 
         await this.WaitForHealthAsync(microcksResource, cancellationToken)
             .ConfigureAwait(false);
