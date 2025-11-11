@@ -45,6 +45,7 @@ public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposa
 
         // Configure Microcks with the artifacts used by tests so services are available
         var microcksBuilder = Builder.AddMicrocks("microcks")
+            .WithPostmanRunner()
             .WithHostNetworkAccess("host.alias.testing") // Prevent DNS resolution issues from containers (podman, docker desktop, etc.)
             .WithSnapshots(Path.Combine(AppContext.BaseDirectory, "resources", "microcks-repository.json"))
             .WithMainArtifacts(
