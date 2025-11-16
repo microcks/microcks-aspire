@@ -54,4 +54,14 @@ public interface ITestEndpoint
     /// <returns>List of request/response pairs for the specified test case.</returns>
     [Get("/api/tests/{testResultId}/messages/{testCaseId}")]
     Task<List<RequestResponsePair>> GetMessagesForTestCaseAsync(string testResultId, string testCaseId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Retrieves unidirectional event messages for a specific test case within a test result.
+    /// </summary>
+    /// <param name="testResultId">The ID of the test result.</param>
+    /// <param name="testCaseId">The ID of the test case.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of unidirectional event messages for the specified test case.</returns>
+    [Get("/api/tests/{testResultId}/events/{testCaseId}")]
+    Task<List<UnidirectionalEvent>> GetEventMessagesForTestCaseAsync(string testResultId, string testCaseId, CancellationToken cancellationToken);
 }

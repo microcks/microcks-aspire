@@ -238,5 +238,112 @@ TestResult testResult = await microcksProvider.TestEndpointAsync(testRequest, Te
 
 ### Async API contract-testing and mocking
 
-For Async API contract-testing and mocking, for the moment it's not yet supported in Aspire extension.
+Async APIs can also be mocked and contract-tested using Microcks with Aspire. You can import AsyncAPI artifacts and use the MicrocksProvider to validate message exchanges.
 
+This feature requires to be explicitly enabled when adding the Microcks resource.
+It's done by calling the `WithAsyncFeature()` method as shown below:
+
+```csharp
+var kafkaBuilder = Builder.AddKafka("kafka")
+    .WithKafkaUI();
+var microcksBuilder = builder.AddMicrocks("microcks")
+    .WithMainArtifacts("pastry-orders-asyncapi.yml")
+    .WithAsyncFeature(minion => {
+        minion.WithKafkaConnection(kafkaBuilder, 9093);
+    });
+```
+
+As you can see, we inject the `KafkaBuilder` into the minion to ensure it can connect properly.
+
+##### Using mock endpoints for your dependencies
+
+Once started, you can retrieve mock topics from the `MicrocksAsyncMinionResource` for different
+supported protocols (WebSocket, Kafka, etc.). Here's how to consume messages sent by the Microcks Async Minion:
+
+```csharp
+// Retrieve MicrocksAsyncMinionResource from application
+var appModel = app.Services.GetRequiredService<DistributedApplicationModel>();
+var microcksAsyncMinionResource = appModel.GetContainerResources()
+    .OfType<MicrocksAsyncMinionResource>()
+    .Single();
+
+// Get the Kafka topic for mock messages
+string kafkaTopic = microcksAsyncMinionResource
+    .GetKafkaMockTopic("Pastry orders API", "0.1.0", "SUBSCRIBE pastry/orders");
+
+// Subscribe to the topic and consume messages
+consumer.Subscribe(kafkaTopic);
+var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(5000));
+```
+
+##### Launching new contract-tests
+
+Using contract-testing techniques on Asynchronous endpoints may require a different style of interacting with the Microcks
+container. For example, you may need to:
+
+1. Start the test making Microcks listen to the target async endpoint,
+2. Activate your System Under Tests so that it produces an event,
+3. Finalize the Microcks tests and actually ensure you received one or many well-formed events.
+
+For that you can use the `MicrocksClient` which provides a `TestEndpointAsync(TestRequest request)` method that returns a `Task<TestResult>`.
+Once invoked, you may trigger your application events and then `await` the future result to assert like this:
+
+```csharp
+var testRequest = new TestRequest
+{
+    ServiceId = "Pastry orders API:0.1.0",
+    RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
+    TestEndpoint = "kafka://kafka:9093/pastry-orders",
+    Timeout = TimeSpan.FromSeconds(5)
+};
+
+var microcksClient = app.CreateMicrocksClient("microcks");
+
+// Start the test, making Microcks listen to the endpoint
+var taskTestResult = microcksClient.TestEndpointAsync(testRequest, cancellationToken);
+
+// Wait a bit to let the test initialize
+await Task.Delay(750, cancellationToken);
+
+// Produce your events to the Kafka topic
+producer.Produce("pastry-orders", new Message<string, string>
+{
+    Key = Guid.NewGuid().ToString(),
+    Value = yourMessage
+});
+
+// Now retrieve the final test result and assert
+TestResult testResult = await taskTestResult;
+Assert.True(testResult.Success);
+```
+
+##### Retrieving event messages
+
+In addition, you can use the `GetEventMessagesForTestCaseAsync()` method to retrieve the events received during the test. This is particularly useful for inspecting message content and validating business logic:
+
+```csharp
+// Retrieve event messages for the failing test case
+List<UnidirectionalEvent> events = await microcksClient.GetEventMessagesForTestCaseAsync(
+    testResult, "SUBSCRIBE pastry/orders", TestContext.Current.CancellationToken);
+
+// Inspect the events
+Assert.True(events.Count >= 1);
+
+// Check event message content
+foreach (var eventItem in events)
+{
+    Assert.NotNull(eventItem.EventMessage);
+    var messageContent = eventItem.EventMessage.Content;
+    
+    // Parse and validate message structure
+    var jsonDocument = JsonDocument.Parse(messageContent);
+    var root = jsonDocument.RootElement;
+    
+    // Validate required fields
+    Assert.True(root.TryGetProperty("id", out _));
+    Assert.True(root.TryGetProperty("customerId", out _));
+    Assert.True(root.TryGetProperty("productQuantities", out _));
+}
+```
+
+This allows developers to perform detailed validation of the async messages exchanged during contract testing.

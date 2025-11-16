@@ -25,6 +25,7 @@ public class MicrocksAsyncMinionResource : ContainerResource
     public MicrocksAsyncMinionResource(string name) : base(name)
     {
     }
+    private const string DestinationPattern = "{0}-{1}-{2}";
 
     internal const string PrimaryEndpointName = "http";
 
@@ -68,4 +69,23 @@ public class MicrocksAsyncMinionResource : ContainerResource
         }
         return operationName;
     }
+
+
+    /// <summary>
+    /// Generates a Kafka mock topic name based on the provided service, version, and operation name.
+    /// </summary>
+    /// <param name="service">The name of the service.</param>
+    /// <param name="version">The version of the service.</param>
+    /// <param name="operationName">The name of the operation, which may start with SUBSCRIBE or PUBLISH.</param>
+    /// <returns>A formatted Kafka mock topic name.</returns>
+    public string GetKafkaMockTopic(string service, string version, string operationName)
+    {
+        operationName = ExtractOperationName(operationName);
+
+        return string.Format(DestinationPattern,
+            service.Replace(" ", "").Replace("-", ""),
+            version,
+            operationName.Replace("/", "-"));
+    }
+
 }

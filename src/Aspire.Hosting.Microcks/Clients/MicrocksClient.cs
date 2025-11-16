@@ -293,4 +293,29 @@ internal sealed class MicrocksClient : IMicrocksClient
         var dailyInvocationStatistic = await this.GetServiceInvocationsAsync(serviceName, serviceVersion, invocationDate, cancellationToken);
         return dailyInvocationStatistic?.DailyCount ?? 0;
     }
+
+    /// <summary>
+    /// Retrieve event messages received during a test on an endpoint (for further investigation or checks).
+    /// </summary>
+    /// <param name="container">Microcks container</param>
+    /// <param name="testResult">The test result to retrieve events from</param>
+    /// <param name="operationName">The name of the operation to retrieve events to test result</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>List of UnidirectionalEvent</returns>
+    /// <exception cref="MicrocksException">If events have not been correctly retrieved</exception>
+    /// <inheritdoc />
+    public async Task<List<UnidirectionalEvent>> GetEventMessagesForTestCaseAsync(
+        TestResult testResult, string operationName, CancellationToken cancellationToken = default)
+    {
+        var operation = operationName.Replace('/', '!');
+        var testCaseId = $"{testResult.Id}-{testResult.TestNumber}-{HttpUtility.UrlEncode(operation)}";
+
+        // Retrieve event messages for the test case
+        var events = await this._client.GetEventMessagesForTestCaseAsync(
+            testResult.Id,
+            testCaseId,
+            cancellationToken);
+
+        return events;
+    }
 }

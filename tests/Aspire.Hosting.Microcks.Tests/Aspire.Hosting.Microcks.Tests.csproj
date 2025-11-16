@@ -18,6 +18,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="Aspire.Hosting.Testing" Version="9.5.2" />
+    <PackageReference Include="Aspire.Hosting.Kafka" Version="9.5.2" />
+    <PackageReference Include="Aspire.Confluent.Kafka" Version="9.5.2" />
   </ItemGroup>
   <ItemGroup>
       <None Include="resources\**" CopyToOutputDirectory="PreserveNewest" />

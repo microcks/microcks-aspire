@@ -101,4 +101,17 @@ public interface IMicrocksClient
     /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
     /// <returns>A task representing the number of invocations.</returns>
     Task<double> GetServiceInvocationsCountAsync(string serviceName, string serviceVersion, DateOnly? invocationDate = null, CancellationToken cancellationToken = default);
+
+
+    /// <summary>
+    /// Retrieve event messages received during a test on an endpoint (for further investigation or checks).
+    /// </summary>
+    /// <param name="testResult">The test result to retrieve events from</param>
+    /// <param name="operationName">The name of the operation to retrieve events to test result</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>List of UnidirectionalEvent</returns>
+    /// <exception cref="MicrocksException">If events have not been correctly retrieved</exception>
+    /// <inheritdoc />
+    public Task<List<UnidirectionalEvent>> GetEventMessagesForTestCaseAsync(
+        TestResult testResult, string operationName, CancellationToken cancellationToken);
 }
