@@ -53,6 +53,7 @@ public abstract class SharedMicrocksFixture : IAsyncLifetime, IDisposable
     /// </summary>
     public async ValueTask InitializeAsync()
     {
+
         // Create builder without per-test ITestOutputHelper to avoid recreating logging per test
         Builder = TestDistributedApplicationBuilder.Create(o => { });
 
@@ -74,7 +75,8 @@ public abstract class SharedMicrocksFixture : IAsyncLifetime, IDisposable
             .WithMainRemoteArtifacts("https://raw.githubusercontent.com/microcks/microcks/master/samples/APIPastry-openapi.yaml");
 
         App = Builder.Build();
-        await App.StartAsync(CancellationToken.None).ConfigureAwait(false);
+        await App.StartAsync(TestContext.Current.CancellationToken)
+            .ConfigureAwait(false);
 
         MicrocksResource = microcksBuilder.Resource;
     }
