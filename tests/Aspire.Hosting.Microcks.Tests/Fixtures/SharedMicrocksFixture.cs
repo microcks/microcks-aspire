@@ -79,6 +79,11 @@ public abstract class SharedMicrocksFixture : IAsyncLifetime, IDisposable
             .ConfigureAwait(false);
 
         MicrocksResource = microcksBuilder.Resource;
+
+        // Wait for Microcks to be ready before proceeding with tests
+        await App.ResourceNotifications.WaitForResourceHealthyAsync(
+            MicrocksResource.Name, cancellationToken: TestContext.Current.CancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
