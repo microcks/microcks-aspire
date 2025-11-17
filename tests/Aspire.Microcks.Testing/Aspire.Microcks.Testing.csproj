@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.0" />
+    <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.2" />
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <IsTestProject>false</IsTestProject>
@@ -9,7 +9,7 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="MartinCostello.Logging.XUnit.v3" Version="0.6.0" />
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.0" IsAspireProjectResource="false" />
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.6.0" />
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.2" IsAspireProjectResource="false" />
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.10.0" />
     </ItemGroup>
 </Project>

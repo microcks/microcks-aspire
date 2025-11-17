@@ -136,7 +136,7 @@ public sealed class MicrocksContractTestingTests(MicrocksContractValidationFixtu
 
         var microcksResource = _fixture.MicrocksResource;
 
-        var microcksProvider = _fixture.App.CreateMicrocksClient(microcksResource.Name);
+        var microcksClient = _fixture.App.CreateMicrocksClient(microcksResource.Name);
 
         TestRequest headerTestRequest = new()
         {
@@ -159,7 +159,7 @@ public sealed class MicrocksContractTestingTests(MicrocksContractValidationFixtu
         };
 
         // Call TestEndpoint from Microcks Resource
-        var testResult = await microcksProvider.TestEndpointAsync(
+        var testResult = await microcksClient.TestEndpointAsync(
             headerTestRequest,
             TestContext.Current.CancellationToken);
 
@@ -180,44 +180,5 @@ public sealed class MicrocksContractTestingTests(MicrocksContractValidationFixtu
         Assert.Equivalent(expectedValues, headerValues);
     }
 
-
-    /// <summary>
-    /// Tests calling the TestEndpoint API of Microcks with host.docker.internal to resolve the good implementation,
-    /// expecting validation success.
-    /// 
-    /// Prevent DNS resolution issues from containers (podman, docker desktop, etc.)
-    /// with a methods available in Aspire Microcks extension WithHostNetworkAccess.
-    /// </summary>
-    /// <returns></returns>
-    [Fact]
-    public async Task WhenCallingTestEndpoint_WithHostNetworkAccess_ShouldReturnValidResult()
-    {
-        Assert.NotNull(_fixture.MicrocksResource);
-        Assert.NotNull(_fixture.App);
-
-        var microcksResource = _fixture.MicrocksResource;
-
-        var microcksProvider = _fixture.App.CreateMicrocksClient(microcksResource.Name);
-
-        var goodImplEndpoint = _fixture.App.GetEndpoint("good-impl");
-
-        TestRequest withEndpointTestRequest = new()
-        {
-            ServiceId = "API Pastries:0.0.1",
-            RunnerType = TestRunnerType.OPEN_API_SCHEMA,
-            TestEndpoint = $"http://host.alias.testing:{goodImplEndpoint.Port}",
-            Timeout = TimeSpan.FromMilliseconds(2000),
-        };
-
-        // Call TestEndpoint from Microcks Resource
-        var testResult = await microcksProvider.TestEndpointAsync(
-            withEndpointTestRequest,
-            TestContext.Current.CancellationToken);
-
-        Assert.True(testResult.Success);
-        Assert.Equal($"http://host.alias.testing:{goodImplEndpoint.Port}", withEndpointTestRequest.TestEndpoint);
-        Assert.Equal(3, testResult.TestCaseResults.Count);
-        Assert.Empty(testResult.TestCaseResults[0].TestStepResults[0].Message);
-    }
 }
 

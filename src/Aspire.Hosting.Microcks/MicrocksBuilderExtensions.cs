@@ -67,7 +67,7 @@ public static class MicrocksBuilderExtensions
         builder.Services.TryAddLifecycleHook<MicrocksResourceLifecycleHook>();
 
         // Configure Client for Microcks API
-        builder.Services.ConfigureMicrocksProvider(microcksResource);
+        builder.Services.ConfigureMicrocksClient(microcksResource);
 
         return resourceBuilder;
     }
@@ -297,11 +297,11 @@ public static class MicrocksBuilderExtensions
             .WithImage("microcks/microcks-postman-runtime", "latest")
             .WaitForConsoleOutput("postman-runtime wrapper listening on port")
             .WithHttpEndpoint(targetPort: 3000, name: MicrocksPostmanResource.PrimaryEndpointName)
-            .WithImageRegistry(MicrocksContainerImageTags.Registry);
+            .WithImageRegistry(MicrocksContainerImageTags.Registry)
+            .WithParentRelationship(microcksBuilder);
 
         // Link Postman runner to Microcks main resource
-        microcksBuilder.WithParentRelationship(postmanResource)
-            .WaitFor(postmanBuilder)
+        microcksBuilder.WaitFor(postmanBuilder)
             .WithEnvironment(context =>
             {
                 var postmanEndpoint = postmanResource.GetEndpoint("http");

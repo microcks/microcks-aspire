@@ -35,7 +35,7 @@ internal static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection to extend.</param>
     /// <returns>The updated service collection.</returns>
-    public static IServiceCollection ConfigureMicrocksProvider(this IServiceCollection services, MicrocksResource microcksResource)
+    public static IServiceCollection ConfigureMicrocksClient(this IServiceCollection services, MicrocksResource microcksResource)
     {
         var name = microcksResource.Name;
         // Configure Refit to use System.Text.Json with explicit options so

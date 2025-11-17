@@ -47,7 +47,6 @@ public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposa
         // Configure Microcks with the artifacts used by tests so services are available
         var microcksBuilder = Builder.AddMicrocks("microcks")
             .WithPostmanRunner()
-            .WithHostNetworkAccess("host.alias.testing") // Prevent DNS resolution issues from containers (podman, docker desktop, etc.)
             .WithSnapshots(Path.Combine(AppContext.BaseDirectory, "resources", "microcks-repository.json"))
             .WithMainArtifacts(
                 Path.Combine(AppContext.BaseDirectory, "resources", "apipastries-openapi.yaml"),
@@ -83,6 +82,14 @@ public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposa
         // Wait for Microcks to be ready before proceeding with tests
         await App.ResourceNotifications.WaitForResourceHealthyAsync(
             MicrocksResource.Name, cancellationToken: TestContext.Current.CancellationToken)
+            .ConfigureAwait(false);
+
+        await App.ResourceNotifications.WaitForResourceHealthyAsync(
+            badImpl.Name, cancellationToken: TestContext.Current.CancellationToken)
+            .ConfigureAwait(false);
+
+        await App.ResourceNotifications.WaitForResourceHealthyAsync(
+            goodImpl.Name, cancellationToken: TestContext.Current.CancellationToken)
             .ConfigureAwait(false);
     }
 

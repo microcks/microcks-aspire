@@ -21,6 +21,8 @@ using System.Threading.Tasks;
 using Aspire.Hosting.Microcks.Clients.Model;
 using Refit;
 
+namespace Aspire.Hosting.Microcks.Clients;
+
 /// <summary>
 /// Client interface for Microcks test endpoint operations.
 /// </summary>
