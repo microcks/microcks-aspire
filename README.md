@@ -1,4 +1,6 @@
 # microcks-aspire
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmicrocks%2Fmicrocks-aspire.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmicrocks%2Fmicrocks-aspire?ref=badge_shield)
+
 Aspire extension that enables hosting Microcks as a service, managing mocks for dependencies and contract-testing of your API endpoints
 
 ## How to use it?
@@ -347,3 +349,7 @@ foreach (var eventItem in events)
 ```
 
 This allows developers to perform detailed validation of the async messages exchanged during contract testing.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmicrocks%2Fmicrocks-aspire.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmicrocks%2Fmicrocks-aspire?ref=badge_large)
