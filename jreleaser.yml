@@ -1,0 +1,25 @@
+project:
+  name: Microcks Aspire
+  description: Microcks Aspire .NET library
+  longDescription: Microcks Aspire .NET library
+  copyright: The Microcks Authors
+
+signing:
+  active: ALWAYS
+  armored: true
+
+files:
+  active: ALWAYS
+  artifacts:
+    - path: './Microcks.Aspire-net9.0.spdx-sbom.json'
+
+release:
+  github:
+    overwrite: true
+    releaseName: '{{tagName}}'
+    tagName: '{{projectVersion}}'
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
