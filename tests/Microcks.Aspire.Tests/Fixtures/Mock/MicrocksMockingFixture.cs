@@ -53,6 +53,7 @@ public sealed class MicrocksMockingFixture : IAsyncLifetime, IDisposable
     /// </summary>
     public async ValueTask InitializeAsync()
     {
+
         // Create builder without per-test ITestOutputHelper to avoid recreating logging per test
         Builder = TestDistributedApplicationBuilder.Create(o => { });
 
