@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Microcks.Async;
+using Aspire.Hosting.Microcks.HealthCheck;
 using Aspire.Microcks.Testing;
 using Xunit;
 
@@ -47,11 +48,13 @@ public sealed class MicrocksAsyncFixture : IAsyncLifetime
         // Good
         var wsGoodImplResource = new ContainerResource("good-contract-async");
         var wsGoodImplBuilder = Builder.AddResource(wsGoodImplResource)
+            .WaitForConsoleOutput("Starting WebSocket server on ws://localhost:4002/websocket")
             .WithImage(GoodPastryAsyncImage);
 
         // Bad
         var wsBadImplResource = new ContainerResource("bad-contract-async");
         var wsBadImplBuilder = Builder.AddResource(wsBadImplResource)
+            .WaitForConsoleOutput("Starting WebSocket server on ws://localhost:4001/websocket")
             .WithImage(BadPastryAsyncImage);
 
         // Microcks with AsyncMinion

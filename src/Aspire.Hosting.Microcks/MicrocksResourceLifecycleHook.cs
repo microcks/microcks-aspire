@@ -22,7 +22,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Lifecycle;
-using Aspire.Hosting.Microcks.Async;
 using Aspire.Hosting.Microcks.Clients;
 using Aspire.Hosting.Microcks.FileArtifacts;
 using Aspire.Hosting.Microcks.MainRemoteArtifacts;
@@ -43,7 +42,7 @@ internal sealed class MicrocksResourceLifecycleHook
 {
     private readonly CancellationTokenSource _shutdownCancellationTokenSource = new();
     private ILogger<MicrocksResource> _logger;
-    private ResourceLoggerService _resourceLoggerService;
+    private ResourceNotificationService _resourceNotificationService;
     private DistributedApplicationExecutionContext _executionContext;
     private IServiceProvider _serviceProvider;
 
@@ -57,14 +56,14 @@ internal sealed class MicrocksResourceLifecycleHook
     /// <param name="serviceProvider">Service provider for resolving scoped services.</param>
     public MicrocksResourceLifecycleHook(
         ILoggerFactory loggerFactory,
-        ResourceLoggerService resourceLoggerService,
+        ResourceNotificationService resourceNotificationService,
         DistributedApplicationExecutionContext executionContext,
         IServiceProvider serviceProvider)
     {
         ArgumentNullException.ThrowIfNull(loggerFactory);
 
         _logger = loggerFactory.CreateLogger<MicrocksResource>();
-        _resourceLoggerService = resourceLoggerService;
+        _resourceNotificationService = resourceNotificationService;
         _executionContext = executionContext;
         _serviceProvider = serviceProvider;
     }
@@ -83,10 +82,8 @@ internal sealed class MicrocksResourceLifecycleHook
         {
             return;
         }
-        // await Task.Delay(1000, cancellationToken)
-        //     .ConfigureAwait(false);
 
-        var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _shutdownCancellationTokenSource.Token,
             cancellationToken);
 
@@ -95,6 +92,11 @@ internal sealed class MicrocksResourceLifecycleHook
 
         foreach (var microcksResource in microcksResources)
         {
+            await this._resourceNotificationService.WaitForResourceHealthyAsync(
+                microcksResource.Name,
+                cancellationToken: cancellationTokenSource.Token)
+                .ConfigureAwait(false);
+
             var endpoint = microcksResource.GetEndpoint();
             if (endpoint.IsAllocated)
             {

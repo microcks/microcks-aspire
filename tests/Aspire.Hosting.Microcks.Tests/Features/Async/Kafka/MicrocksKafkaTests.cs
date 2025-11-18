@@ -27,6 +27,7 @@ using Aspire.Hosting.Microcks.Tests.Fixtures.Async.Kafka;
 using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Polly;
 using Xunit;
 
 namespace Aspire.Hosting.Microcks.Tests.Features.Async.Kafka;
@@ -91,22 +92,29 @@ public sealed class MicrocksKafkaTests
         // Get Kafka consumer from host
         var consumer = host.Services.GetRequiredService<IConsumer<string, string>>();
 
-        // Subscribe to the Kafka topic used by Microcks Async Minion for the pastry/orders subscription
-        var kafkaTopic = microcksAsyncMinionResource
-            .GetKafkaMockTopic("Pastry orders API", "0.1.0", "SUBSCRIBE pastry/orders");
-        consumer.Subscribe(kafkaTopic);
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new() { MaxRetryAttempts = 10, Delay = TimeSpan.FromSeconds(1), ShouldHandle = new PredicateBuilder().Handle<ConsumeException>() })
+            .Build();
 
-        string message = null;
-
-        // Consume message from Kafka 5000 milliseconds attempt
-        var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(5000));
-
-        if (consumeResult != null)
+        pipeline.Execute(() =>
         {
-            message = consumeResult.Message.Value;
-        }
+            // Subscribe to the Kafka topic used by Microcks Async Minion for the pastry/orders subscription
+            var kafkaTopic = microcksAsyncMinionResource
+                .GetKafkaMockTopic("Pastry orders API", "0.1.0", "SUBSCRIBE pastry/orders");
+            consumer.Subscribe(kafkaTopic);
 
-        Assert.Equal(expectedMessage, message);
+            string message = null;
+
+            // Consume message from Kafka 5000 milliseconds attempt
+            var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(5000));
+
+            if (consumeResult != null)
+            {
+                message = consumeResult.Message.Value;
+            }
+
+            Assert.Equal(expectedMessage, message);
+        });
     }
 
     /// <summary>
@@ -217,8 +225,8 @@ public sealed class MicrocksKafkaTests
         var testResult = await taskTestResult;
 
         // Assert
-        Assert.False(testResult.InProgress);
-        Assert.False(testResult.Success);
+        Assert.False(testResult.InProgress, "Test should have completed");
+        Assert.False(testResult.Success, "Test should have failed");
         Assert.Equal(testRequest.TestEndpoint, testResult.TestedEndpoint);
 
         var testCaseResult = testResult.TestCaseResults.First();

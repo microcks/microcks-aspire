@@ -17,6 +17,7 @@
 
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Aspire.Hosting.Microcks.HealthCheck;
 using Xunit;
 
 namespace Aspire.Microcks.Testing.Fixtures.Contract;
@@ -36,12 +37,14 @@ public sealed class MicrocksContractValidationFixture : SharedMicrocksFixture
         var badImpl = new ContainerResource("bad-impl");
         builder.AddResource(badImpl)
             .WithImage(BAD_PASTRY_IMAGE)
+            .WaitForConsoleOutput("Example app listening on port 3001")
             .WithHttpEndpoint(targetPort: 3001, name: "http");
 
         // Add good implementation container
         var goodImpl = new ContainerResource("good-impl");
         builder.AddResource(goodImpl)
             .WithImage(GOOD_PASTRY_IMAGE)
+            .WaitForConsoleOutput("Example app listening on port 3002")
             .WithHttpEndpoint(targetPort: 3002, name: "http");
     }
 

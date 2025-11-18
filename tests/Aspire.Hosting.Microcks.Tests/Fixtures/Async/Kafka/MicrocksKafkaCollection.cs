@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Aspire.Hosting.Microcks.Tests.Fixtures.Async.Kafka;
 
-[CollectionDefinition(MicrocksKafkaCollection.CollectionName)]
+[CollectionDefinition(MicrocksKafkaCollection.CollectionName, DisableParallelization = true)]
 public sealed class MicrocksKafkaCollection : ICollectionFixture<MicrocksKafkaFixture>
 {
     public const string CollectionName = "Microcks Kafka collection";
