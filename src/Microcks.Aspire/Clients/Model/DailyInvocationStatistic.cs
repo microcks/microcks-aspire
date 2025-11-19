@@ -30,25 +30,25 @@ public class DailyInvocationStatistic
     /// Id of statistic record.
     /// </summary>
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     /// <summary>
     /// Day of statistic record.
     /// </summary>
     [JsonPropertyName("day")]
-    public string Day { get; set; }
+    public string? Day { get; set; }
 
     /// <summary>
     /// Service name of statistic record.
     /// </summary>
     [JsonPropertyName("serviceName")]
-    public string ServiceName { get; set; }
+    public string? ServiceName { get; set; }
 
     /// <summary>
     /// Service version of statistic record.
     /// </summary>
     [JsonPropertyName("serviceVersion")]
-    public string ServiceVersion { get; set; }
+    public string? ServiceVersion { get; set; }
 
     /// <summary>
     /// Daily count of statistic record.
@@ -60,11 +60,11 @@ public class DailyInvocationStatistic
     /// Hourly count of statistic record.
     /// </summary>
     [JsonPropertyName("hourlyCount")]
-    public Dictionary<string, object> HourlyCount { get; set; }
+    public Dictionary<string, object>? HourlyCount { get; set; }
 
     /// <summary>
     /// Minute count of statistic record.
     /// </summary>
     [JsonPropertyName("minuteCount")]
-    public Dictionary<string, object> MinuteCount { get; set; }
+    public Dictionary<string, object>? MinuteCount { get; set; }
 }

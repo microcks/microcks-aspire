@@ -28,7 +28,7 @@ namespace Microcks.Aspire.Clients.Model;
 public class TestResult
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     [JsonPropertyName("version")]
     public int Version { get; set; }
@@ -40,10 +40,10 @@ public class TestResult
     public long TestDate { get; set; }
 
     [JsonPropertyName("testedEndpoint")]
-    public string TestedEndpoint { get; set; }
+    public string? TestedEndpoint { get; set; }
 
     [JsonPropertyName("serviceId")]
-    public string ServiceId { get; set; }
+    public string? ServiceId { get; set; }
 
     [JsonConverter(typeof(TimeSpanToMillisecondsConverter))]
     [JsonPropertyName("timeout")]
@@ -62,11 +62,11 @@ public class TestResult
     public TestRunnerType RunnerType { get; set; }
 
     [JsonPropertyName("testCaseResults")]
-    public List<TestCaseResult> TestCaseResults { get; set; }
+    public List<TestCaseResult>? TestCaseResults { get; set; }
 
     [JsonPropertyName("operationsHeaders")]
-    public Dictionary<string, List<Header>> OperationsHeaders { get; set; }
+    public Dictionary<string, List<Header>>? OperationsHeaders { get; set; }
 
     [JsonPropertyName("authorizedClient")]
-    public OAuth2AuthorizedClient AuthorizedClient { get; set; }
+    public OAuth2AuthorizedClient? AuthorizedClient { get; set; }
 }

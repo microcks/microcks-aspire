@@ -30,23 +30,23 @@ public class Response : Message
     /// Id of the response.
     /// </summary>
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     /// <summary>
     /// Status of the response.
     /// </summary>
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    public string? Status { get; set; }
 
     /// <summary>
     /// Media type of the response.
     /// </summary>
     [JsonPropertyName("mediaType")]
-    public string MediaType { get; set; }
+    public string? MediaType { get; set; }
 
     /// <summary>
     /// Dispatch Criteria of the response.
     /// </summary>
     [JsonPropertyName("dispatchCriteria")]
-    public string DispatchCriteria { get; set; }
+    public string? DispatchCriteria { get; set; }
 }

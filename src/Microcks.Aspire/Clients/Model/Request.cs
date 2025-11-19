@@ -30,17 +30,17 @@ public class Request : Message
     /// Gets or sets the id of the request.
     /// </summary>
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     /// <summary>
     /// Gets or sets the responseId of the request.
     /// </summary>
     [JsonPropertyName("responseId")]
-    public string ResponseId { get; set; }
+    public string? ResponseId { get; set; }
 
     /// <summary>
     /// Gets or sets the queryParameters of the request.
     /// </summary>
     [JsonPropertyName("queryParameters")]
-    public List<Parameter> QueryParameters { get; set; }
+    public List<Parameter>? QueryParameters { get; set; }
 }

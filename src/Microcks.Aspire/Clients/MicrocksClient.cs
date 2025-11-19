@@ -68,7 +68,7 @@ internal sealed class MicrocksClient : IMicrocksClient
         try
         {
             await WaitForConditionAsync(
-                async () => !(await _client.RefreshTestResultAsync(testResultId, cancellationToken)).InProgress,
+                async () => !(await _client.RefreshTestResultAsync(testResultId!, cancellationToken)).InProgress,
                 atMost: TimeSpan.FromMilliseconds(1000).Add(testRequest.Timeout),
                 delay: TimeSpan.FromMilliseconds(100),
                 interval: TimeSpan.FromMilliseconds(200),
@@ -81,7 +81,7 @@ internal sealed class MicrocksClient : IMicrocksClient
                 "Test timeout reached, stopping polling for test {TestEndpoint}", testRequest.TestEndpoint);
         }
 
-        return await _client.RefreshTestResultAsync(testResultId, cancellationToken);
+        return await _client.RefreshTestResultAsync(testResultId!, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -94,9 +94,10 @@ internal sealed class MicrocksClient : IMicrocksClient
         ArgumentException.ThrowIfNullOrEmpty(operationName);
 
         var operation = operationName.Replace('/', '!');
-        var testCaseId = $"{testResult.Id}-{testResult.TestNumber}-{HttpUtility.UrlEncode(operation)}";
+        string testResultId = testResult.Id!;
+        var testCaseId = $"{testResultId}-{testResult.TestNumber}-{HttpUtility.UrlEncode(operation)}";
 
-        return await _client.GetMessagesForTestCaseAsync(testResult.Id, testCaseId, cancellationToken);
+        return await _client.GetMessagesForTestCaseAsync(testResultId, testCaseId, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -258,7 +259,7 @@ internal sealed class MicrocksClient : IMicrocksClient
         return dailyInvocationStatistic.DailyCount > 0;
     }
 
-    private async Task<DailyInvocationStatistic> GetServiceInvocationsAsync(string serviceName, string serviceVersion, DateOnly? invocationDate = null, CancellationToken cancellationToken = default)
+    private async Task<DailyInvocationStatistic?> GetServiceInvocationsAsync(string serviceName, string serviceVersion, DateOnly? invocationDate = null, CancellationToken cancellationToken = default)
     {
         // Wait to avoid race condition issue when requesting Microcks Metrics REST API.
         await Task.Delay(100, cancellationToken);
@@ -312,7 +313,7 @@ internal sealed class MicrocksClient : IMicrocksClient
 
         // Retrieve event messages for the test case
         var events = await this._client.GetEventMessagesForTestCaseAsync(
-            testResult.Id,
+            testResult.Id!,
             testCaseId,
             cancellationToken);
 

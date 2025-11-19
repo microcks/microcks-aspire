@@ -28,11 +28,11 @@ public class UnidirectionalEvent
     /// Gets or sets the type of the unidirectional event.
     /// </summary>
     [JsonPropertyName("type")]
-    public string Type { get; set; }
+    public string? Type { get; set; }
 
     /// <summary>
     /// Gets or sets the event message associated with the unidirectional event.
     /// </summary>
     [JsonPropertyName("eventMessage")]
-    public EventMessage EventMessage { get; set; }
+    public EventMessage? EventMessage { get; set; }
 }

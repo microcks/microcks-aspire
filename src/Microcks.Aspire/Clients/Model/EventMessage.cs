@@ -29,17 +29,17 @@ public class EventMessage : Message
     /// ID of the event message.
     /// </summary>
     [JsonPropertyName("id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     /// <summary>
     /// Media type of the event message.
     /// </summary>
     [JsonPropertyName("mediaType")]
-    public string MediaType { get; set; }
+    public string? MediaType { get; set; }
 
     /// <summary>
     /// Dispatch Criteria of the response.
     /// </summary>
     [JsonPropertyName("dispatchCriteria")]
-    public string DispatchCriteria { get; set; }
+    public string? DispatchCriteria { get; set; }
 }

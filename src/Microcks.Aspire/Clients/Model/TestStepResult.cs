@@ -28,11 +28,11 @@ public class TestStepResult
     public int ElapsedTime { get; set; }
 
     [JsonPropertyName("requestName")]
-    public string RequestName { get; set; }
+    public string? RequestName { get; set; }
 
     [JsonPropertyName("eventMessageName")]
-    public string EventMessageName { get; set; }
+    public string? EventMessageName { get; set; }
 
     [JsonPropertyName("message")]
-    public string Message { get; set; }
+    public string? Message { get; set; }
 }

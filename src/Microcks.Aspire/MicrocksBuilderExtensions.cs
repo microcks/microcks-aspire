@@ -218,7 +218,7 @@ public static class MicrocksBuilderExtensions
 
         var microcksAsyncMinionImage = microcksImage.Replace("microcks-uber", "microcks-uber-async-minion");
 
-        var microcksAsyncMinionTag = containerImageAnnotation.Tag;
+        var microcksAsyncMinionTag = containerImageAnnotation.Tag!;
         if (microcksAsyncMinionTag.EndsWith("-native"))
         {
             microcksAsyncMinionTag = microcksAsyncMinionTag.Replace("-native", "");

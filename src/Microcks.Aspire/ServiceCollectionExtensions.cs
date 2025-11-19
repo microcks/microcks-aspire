@@ -72,7 +72,7 @@ internal static class ServiceCollectionExtensions
         services.AddKeyedScoped(name, (serviceProvider, serviceKey) =>
         {
             var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-            var httpClient = httpClientFactory.CreateClient(serviceKey.ToString());
+            var httpClient = httpClientFactory.CreateClient(serviceKey.ToString()!);
             return RestService.For<IMicrocksEndpoint>(httpClient, refitSettings);
         });
 

@@ -28,11 +28,11 @@ public class Parameter
     /// The name of the parameter.
     /// </summary>
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     /// <summary>
     /// The value of the parameter.
     /// </summary>
     [JsonPropertyName("value")]
-    public string Value { get; set; }
+    public string? Value { get; set; }
 }

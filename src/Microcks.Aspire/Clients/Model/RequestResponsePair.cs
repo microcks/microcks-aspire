@@ -25,17 +25,17 @@ public class RequestResponsePair
     /// Gets or sets the type of the exchange.
     /// </summary>
     [JsonPropertyName("type")]
-    public string Type { get; set; }
+    public string? Type { get; set; }
 
     /// <summary>
     /// Gets or sets the request associated with the exchanges pair.
     /// </summary>
     [JsonPropertyName("request")]
-    public Request Request { get; set; }
+    public Request? Request { get; set; }
 
     /// <summary>
     /// Gets or sets the response associated with the exchanges pair.
     /// </summary>
     [JsonPropertyName("response")]
-    public Response Response { get; set; }
+    public Response? Response { get; set; }
 }

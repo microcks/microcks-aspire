@@ -30,6 +30,12 @@ public class ArrayToStringConverter : JsonConverter<string>
     /// <inheritdoc />
     public override string Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
+        // Check si reader != null
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return string.Empty;
+        }
+
         if (reader.TokenType == JsonTokenType.StartArray)
         {
             var values = new List<string>();
@@ -39,11 +45,11 @@ public class ArrayToStringConverter : JsonConverter<string>
                 {
                     break;
                 }
-                values.Add(reader.GetString());
+                values.Add(reader.GetString()!);
             }
             return string.Join(",", values);
         }
-        return reader.GetString();
+        return reader.GetString()!;
     }
 
     /// <inheritdoc />

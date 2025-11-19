@@ -30,36 +30,36 @@ public abstract class Message
     /// Name of the message.
     /// </summary>
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     /// <summary>
     /// Content of the message.
     /// </summary>
     [JsonPropertyName("content")]
-    public string Content { get; set; }
+    public string? Content { get; set; }
 
     /// <summary>
     /// Operation ID of the message.
     /// </summary>
     [JsonPropertyName("operationId")]
-    public string OperationId { get; set; }
+    public string? OperationId { get; set; }
 
     /// <summary>
     /// Test case ID of the message.
     /// </summary>
     [JsonPropertyName("testCaseId")]
-    public string TestCaseId { get; set; }
+    public string? TestCaseId { get; set; }
 
 
     /// <summary>
     /// Source Artifact of the message.
     /// </summary>
     [JsonPropertyName("sourceArtifact")]
-    public string SourceArtifact { get; set; }
+    public string? SourceArtifact { get; set; }
 
     /// <summary>
     /// Headers of the event message.
     /// </summary>
     [JsonPropertyName("headers")]
-    public List<Header> Headers { get; set; }
+    public List<Header>? Headers { get; set; }
 }

@@ -26,9 +26,9 @@ namespace Microcks.Aspire.Clients.Model;
 public sealed class Header
 {
     [JsonPropertyName("name")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     [JsonPropertyName("values")]
     [JsonConverter(typeof(ArrayToStringConverter))]
-    public string Values { get; set; }
+    public string? Values { get; set; }
 }

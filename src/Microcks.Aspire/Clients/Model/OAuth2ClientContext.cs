@@ -25,28 +25,28 @@ namespace Microcks.Aspire.Clients.Model;
 public class OAuth2ClientContext
 {
     [JsonPropertyName("clientId")]
-    public string ClientId { get; set; }
+    public string? ClientId { get; set; }
 
     [JsonPropertyName("clientSecret")]
-    public string ClientSecret { get; set; }
+    public string? ClientSecret { get; set; }
 
     [JsonPropertyName("tokenUri")]
-    public string TokenUri { get; set; }
+    public string? TokenUri { get; set; }
 
     [JsonPropertyName("scopes")]
-    public string Scopes { get; set; }
+    public string? Scopes { get; set; }
 
     [JsonPropertyName("username")]
-    public string Username { get; set; }
+    public string? Username { get; set; }
 
     [JsonPropertyName("password")]
-    public string Password { get; set; }
+    public string? Password { get; set; }
 
     [JsonPropertyName("refreshToken")]
-    public string RefreshToken { get; set; }
+    public string? RefreshToken { get; set; }
 
     [JsonPropertyName("grantType")]
-    public OAuth2GrantType GrantType { get; set; }
+    public OAuth2GrantType? GrantType { get; set; }
 }
 
 /// <summary>

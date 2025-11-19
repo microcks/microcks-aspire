@@ -29,8 +29,8 @@ public class TestCaseResult
     public int ElapsedTime { get; set; }
 
     [JsonPropertyName("operationName")]
-    public string OperationName { get; set; }
+    public string? OperationName { get; set; }
 
     [JsonPropertyName("testStepResults")]
-    public List<TestStepResult> TestStepResults { get; set; }
+    public List<TestStepResult>? TestStepResults { get; set; }
 }
