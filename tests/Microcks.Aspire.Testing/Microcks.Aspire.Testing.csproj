@@ -1,15 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-    <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.2" />
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.0.0">
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
         <IsTestProject>false</IsTestProject>
         <IsPackable>false</IsPackable>
         <IsAspireHost>true</IsAspireHost>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="MartinCostello.Logging.XUnit.v3" Version="0.6.0" />
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.2" IsAspireProjectResource="false" />
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.10.0" />
+        <PackageReference Include="Aspire.Hosting.Testing" />
+        <PackageReference Include="xunit.v3.extensibility.core" />
+        <PackageReference Include="MartinCostello.Logging.XUnit.v3" />
     </ItemGroup>
 </Project>

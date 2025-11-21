@@ -33,7 +33,7 @@ namespace Microcks.Aspire.Tests.Fixtures.Async;
 /// </summary>
 public sealed class MicrocksAsyncFixture : IAsyncLifetime
 {
-    public TestDistributedApplicationBuilder Builder { get; private set; } = default!;
+    public IDistributedApplicationBuilder Builder { get; private set; } = default!;
     public DistributedApplication App { get; private set; } = default!;
     public MicrocksResource MicrocksResource { get; private set; } = default!;
 
