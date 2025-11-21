@@ -64,7 +64,7 @@ public static class MicrocksBuilderExtensions
             .WithOtlpExporter();
 
         // Register lifecycle hook for Microcks (Import artifacts, etc.)
-        builder.Services.TryAddLifecycleHook<MicrocksResourceLifecycleHook>();
+        builder.Services.TryAddEventingSubscriber<MicrocksApplicationEventingSubscriber>();
 
         // Configure Client for Microcks API
         builder.Services.ConfigureMicrocksClient(microcksResource);
