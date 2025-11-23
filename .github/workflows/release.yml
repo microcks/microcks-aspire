@@ -61,8 +61,12 @@ jobs:
         run: |
           curl -Lo $RUNNER_TEMP/sbom-tool https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
           chmod +x $RUNNER_TEMP/sbom-tool
+          # Generate SBOM for .NET 9.0 build output
           $RUNNER_TEMP/sbom-tool generate -b ./src/Microcks.Aspire/obj/Release/net9.0 -bc . -pn Microcks.Aspire -pv ${{ github.event.inputs.version }} -ps Microcks -nsb https://microcks.io
           cp ./src/Microcks.Aspire/obj/Release/net9.0/_manifest/spdx_2.2/manifest.spdx.json ./Microcks.Aspire-net9.0.spdx-sbom.json
+          # Generate SBOM for .NET 10.0 build output
+          $RUNNER_TEMP/sbom-tool generate -b ./src/Microcks.Aspire/obj/Release/net10.0 -bc . -pn Microcks.Aspire -pv ${{ github.event.inputs.version }} -ps Microcks -nsb https://microcks.io
+          cp ./src/Microcks.Aspire/obj/Release/net10.0/_manifest/spdx_2.2/manifest.spdx.json ./Microcks.Aspire-net10.0.spdx-sbom.json
 
       - name: Publish release with JReleaser
         uses: jreleaser/release-action@v2

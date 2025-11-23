@@ -69,7 +69,7 @@ internal sealed class MicrocksClient : IMicrocksClient
         {
             await WaitForConditionAsync(
                 async () => !(await _client.RefreshTestResultAsync(testResultId!, cancellationToken)).InProgress,
-                atMost: TimeSpan.FromMilliseconds(1000).Add(testRequest.Timeout),
+                atMost: TimeSpan.FromMilliseconds(3000).Add(testRequest.Timeout),
                 delay: TimeSpan.FromMilliseconds(100),
                 interval: TimeSpan.FromMilliseconds(200),
                 cancellationToken);

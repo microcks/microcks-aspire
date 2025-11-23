@@ -1,25 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MartinCostello.Logging.XUnit.v3" Version="0.7.0" />
-    <PackageReference Include="FakeItEasy" Version="8.3.0" />
-    <PackageReference Include="xunit.v3" Version="3.2.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+    <PackageReference Include="FakeItEasy" />
+    <PackageReference Include="xunit.v3"  />
+    <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="6.0.4">
+    <PackageReference Include="coverlet.collector">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Include="Aspire.Hosting.Testing" Version="9.5.2" />
-    <PackageReference Include="Aspire.Hosting.Kafka" Version="9.5.2" />
-    <PackageReference Include="Aspire.Confluent.Kafka" Version="9.5.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Aspire.Hosting.Testing" />
+    <PackageReference Include="Aspire.Hosting.Kafka" />
+    <PackageReference Include="Aspire.Confluent.Kafka" />
   </ItemGroup>
   <ItemGroup>
       <None Include="resources\**" CopyToOutputDirectory="PreserveNewest" />

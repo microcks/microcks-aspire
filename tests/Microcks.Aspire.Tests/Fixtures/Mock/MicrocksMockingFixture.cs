@@ -33,7 +33,7 @@ namespace Microcks.Aspire.Testing.Fixtures;
 /// </summary>
 public sealed class MicrocksMockingFixture : IAsyncLifetime, IDisposable
 {
-    public TestDistributedApplicationBuilder Builder { get; private set; } = default!;
+    public IDistributedApplicationBuilder Builder { get; private set; } = default!;
     public DistributedApplication App { get; private set; } = default!;
     public MicrocksResource MicrocksResource { get; private set; } = default!;
 
@@ -89,7 +89,6 @@ public sealed class MicrocksMockingFixture : IAsyncLifetime, IDisposable
             // swallow, we're tearing down tests
         }
 
-        Builder?.Dispose();
     }
 
     public void Dispose()

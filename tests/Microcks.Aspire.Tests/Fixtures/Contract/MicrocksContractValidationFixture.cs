@@ -31,7 +31,7 @@ namespace Microcks.Aspire.Testing.Fixtures.Contract;
 /// </summary>
 public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposable
 {
-    public TestDistributedApplicationBuilder Builder { get; private set; } = default!;
+    public IDistributedApplicationBuilder Builder { get; private set; } = default!;
     public DistributedApplication App { get; private set; } = default!;
     public MicrocksResource MicrocksResource { get; private set; } = default!;
 
@@ -110,8 +110,6 @@ public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposa
         {
             // swallow, we're tearing down tests
         }
-
-        Builder?.Dispose();
     }
 
     public void Dispose()

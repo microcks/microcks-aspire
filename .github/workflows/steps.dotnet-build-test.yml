@@ -76,6 +76,15 @@ jobs:
     - name: 🏗 Build
       run: dotnet build --configuration Release --no-restore
 
+    - name: 🧪 Test .NET (Debug Filter)
+      id: test-debug
+      run: |
+        dotnet test --no-build `
+        --configuration Release `
+        --filter "Category=Debug"
+      shell: pwsh
+
+
     - name: 🧪 Test .NET
       id: test
       if: ${{ inputs.use-sonarcloud == false }}

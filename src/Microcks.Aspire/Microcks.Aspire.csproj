@@ -1,7 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Aspire.AppHost.Sdk/13.0.0">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <Nullable>enable</Nullable>
     <PackageTags>aspire integration hosting microcks</PackageTags>
@@ -9,8 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting" Version="9.5.2" />
-    <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
+    <PackageReference Include="Refit.HttpClientFactory" />
   </ItemGroup>
 
 </Project>
