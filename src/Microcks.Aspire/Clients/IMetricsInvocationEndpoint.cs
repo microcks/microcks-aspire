@@ -23,6 +23,9 @@ using Refit;
 
 namespace Microcks.Aspire.Clients;
 
+/// <summary>
+/// Defines the endpoint for retrieving metrics and invocation statistics from Microcks.
+/// </summary>
 public interface IMetricsInvocationEndpoint
 {
     /// <summary>

@@ -19,6 +19,9 @@ using System.Text.Json.Serialization;
 
 namespace Microcks.Aspire.Clients.Model;
 
+/// <summary>
+/// Represents a request-response pair in a test step, capturing both the request sent and the response received.
+/// </summary>
 public class RequestResponsePair
 {
     /// <summary>

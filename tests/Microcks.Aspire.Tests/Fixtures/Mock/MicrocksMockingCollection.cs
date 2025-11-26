@@ -20,7 +20,7 @@ using Xunit;
 namespace Microcks.Aspire.Tests.Fixtures.Mock;
 
 /// <summary>
-/// Collection definition used to share the <see cref="SharedMicrocksFixture"/>
+/// Collection definition used to share the <see cref="MicrocksMockingFixture"/>
 /// between tests. Tests that depend on a running Microcks instance should
 /// belong to this collection.
 /// </summary>

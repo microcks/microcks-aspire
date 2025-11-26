@@ -24,15 +24,27 @@ namespace Microcks.Aspire.Clients.Model;
 /// </summary>
 public class OAuth2AuthorizedClient
 {
+    /// <summary>
+    /// Gets or sets the principal name of the authorized OAuth2 client.
+    /// </summary>
     [JsonPropertyName("principalName")]
     public string? PrincipalName { get; set; }
 
+    /// <summary>
+    /// Gets or sets the token URI used to obtain OAuth2 access tokens.
+    /// </summary>
     [JsonPropertyName("tokenUri")]
     public string? TokenUri { get; set; }
 
+    /// <summary>
+    /// Gets or sets the OAuth2 scopes as a space-separated string.
+    /// </summary>
     [JsonPropertyName("scopes")]
     public string? Scopes { get; set; }
 
+    /// <summary>
+    /// Gets or sets the OAuth2 grant type used for authorization.
+    /// </summary>
     [JsonPropertyName("grantType")]
     public OAuth2GrantType? GrantType { get; set; }
 }

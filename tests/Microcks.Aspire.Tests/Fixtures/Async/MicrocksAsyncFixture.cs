@@ -33,13 +33,28 @@ namespace Microcks.Aspire.Tests.Fixtures.Async;
 /// </summary>
 public sealed class MicrocksAsyncFixture : IAsyncLifetime
 {
+    /// <summary>
+    /// Gets the test distributed application builder.
+    /// </summary>
     public IDistributedApplicationBuilder Builder { get; private set; } = default!;
+
+    /// <summary>
+    /// Gets the distributed application instance.
+    /// </summary>
     public DistributedApplication App { get; private set; } = default!;
+
+    /// <summary>
+    /// Gets the Microcks resource.
+    /// </summary>
     public MicrocksResource MicrocksResource { get; private set; } = default!;
 
     private const string BadPastryAsyncImage = "quay.io/microcks/contract-testing-demo-async:01";
     private const string GoodPastryAsyncImage = "quay.io/microcks/contract-testing-demo-async:02";
 
+    /// <summary>
+    /// Initializes the shared distributed application with Microcks and Async Minion.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     /// <inheritdoc />
     public async ValueTask InitializeAsync()
     {

@@ -25,12 +25,20 @@ namespace Microcks.Aspire.Clients.Model;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TestRunnerType
 {
+    /// <summary>HTTP test runner.</summary>
     HTTP,
+    /// <summary>SOAP over HTTP test runner.</summary>
     SOAP_HTTP,
+    /// <summary>SoapUI test runner.</summary>
     SOAP_UI,
+    /// <summary>Postman test runner.</summary>
     POSTMAN,
+    /// <summary>OpenAPI schema validation test runner.</summary>
     OPEN_API_SCHEMA,
+    /// <summary>AsyncAPI schema validation test runner.</summary>
     ASYNC_API_SCHEMA,
+    /// <summary>gRPC Protocol Buffers test runner.</summary>
     GRPC_PROTOBUF,
+    /// <summary>GraphQL schema validation test runner.</summary>
     GRAPHQL_SCHEMA
 }

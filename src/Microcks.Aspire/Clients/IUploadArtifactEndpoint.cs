@@ -22,9 +22,18 @@ using System.Threading.Tasks;
 
 namespace Microcks.Aspire.Clients;
 
-/// <summary>Upload an artifact</summary>
+/// <summary>
+/// Defines the endpoint for uploading artifacts to Microcks.
+/// </summary>
 public interface IUploadArtifactEndpoint
 {
+    /// <summary>
+    /// Uploads an artifact file to Microcks.
+    /// </summary>
+    /// <param name="mainArtifact">Indicates whether this is a main artifact (true) or a secondary artifact (false).</param>
+    /// <param name="file">The artifact file to upload as a stream.</param>
+    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
+    /// <returns>An HTTP response message indicating the result of the upload operation.</returns>
     [Multipart]
     [Post("/api/artifact/upload?mainArtifact={mainArtifact}")]
     [Headers("Accept: application/json")]

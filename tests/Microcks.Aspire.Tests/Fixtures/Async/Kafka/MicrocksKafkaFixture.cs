@@ -34,9 +34,24 @@ namespace Microcks.Aspire.Tests.Fixtures.Async.Kafka;
 /// </summary>
 public sealed class MicrocksKafkaFixture : IAsyncLifetime
 {
+    /// <summary>
+    /// Gets the test distributed application builder.
+    /// </summary>
     public IDistributedApplicationBuilder Builder { get; private set; } = default!;
+
+    /// <summary>
+    /// Gets the distributed application instance.
+    /// </summary>
     public DistributedApplication App { get; private set; } = default!;
+
+    /// <summary>
+    /// Gets the Microcks resource.
+    /// </summary>
     public MicrocksResource MicrocksResource { get; private set; } = default!;
+
+    /// <summary>
+    /// Gets the Kafka server resource.
+    /// </summary>
     public KafkaServerResource KafkaResource { get; private set; } = default!;
 
     /// <inheritdoc />

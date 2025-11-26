@@ -22,8 +22,17 @@ using Refit;
 
 namespace Microcks.Aspire.Clients;
 
+/// <summary>
+/// Defines the endpoint for importing artifacts into Microcks.
+/// </summary>
 public interface IImportArtifactEndpoint
 {
+    /// <summary>
+    /// Imports an artifact file (such as OpenAPI, AsyncAPI, or other API definitions) into Microcks.
+    /// </summary>
+    /// <param name="file">The artifact file to import as a stream.</param>
+    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
+    /// <returns>An HTTP response message indicating the result of the import operation.</returns>
     [Multipart]
     [Headers("Accept: application/json")]
     [Post("/api/import")]

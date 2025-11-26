@@ -17,6 +17,10 @@
 
 namespace Microcks.Aspire.Clients;
 
+/// <summary>
+/// Aggregates all Microcks API endpoint interfaces into a single comprehensive interface.
+/// This interface combines upload, download, import, health check, test, and metrics capabilities.
+/// </summary>
 public interface IMicrocksEndpoint :
     IUploadArtifactEndpoint,
     IDownloadArtifactEndpoint,

@@ -20,17 +20,32 @@ using System.Text.Json.Serialization;
 
 namespace Microcks.Aspire.Clients.Model;
 
+/// <summary>
+/// Represents the result of a test case execution for a specific API operation.
+/// </summary>
 public class TestCaseResult
 {
+    /// <summary>
+    /// Gets or sets a value indicating whether the test case execution was successful.
+    /// </summary>
     [JsonPropertyName("success")]
     public bool Success { get; set; }
 
+    /// <summary>
+    /// Gets or sets the elapsed time in milliseconds for the test case execution.
+    /// </summary>
     [JsonPropertyName("elapsedTime")]
     public int ElapsedTime { get; set; }
 
+    /// <summary>
+    /// Gets or sets the name of the operation that was tested.
+    /// </summary>
     [JsonPropertyName("operationName")]
     public string? OperationName { get; set; }
 
+    /// <summary>
+    /// Gets or sets the list of individual test step results that comprise this test case.
+    /// </summary>
     [JsonPropertyName("testStepResults")]
     public List<TestStepResult>? TestStepResults { get; set; }
 }

@@ -22,8 +22,16 @@ using Refit;
 
 namespace Microcks.Aspire.Clients;
 
+/// <summary>
+/// Defines the health check endpoint for Microcks API.
+/// </summary>
 public interface IHealthCheckEndpoint
 {
+    /// <summary>
+    /// Checks the health status of the Microcks service.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
+    /// <returns>An HTTP response message containing the health check result.</returns>
     [Get("/api/health")]
     [Headers("Accept: application/json")]
     Task<HttpResponseMessage> CheckHealthAsync(CancellationToken cancellationToken);

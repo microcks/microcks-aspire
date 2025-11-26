@@ -25,9 +25,15 @@ namespace Microcks.Aspire.Clients.Model;
 /// </summary>
 public sealed class Header
 {
+    /// <summary>
+    /// Gets or sets the name of the header.
+    /// </summary>
     [JsonPropertyName("name")]
     public string? Name { get; set; }
 
+    /// <summary>
+    /// Gets or sets the values of the header as a comma-separated string.
+    /// </summary>
     [JsonPropertyName("values")]
     [JsonConverter(typeof(ArrayToStringConverter))]
     public string? Values { get; set; }

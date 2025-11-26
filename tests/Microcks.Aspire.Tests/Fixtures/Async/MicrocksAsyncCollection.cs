@@ -25,5 +25,8 @@ namespace Microcks.Aspire.Tests.Fixtures.Async;
 [CollectionDefinition(MicrocksAsyncCollection.CollectionName)]
 public sealed class MicrocksAsyncCollection : ICollectionFixture<MicrocksAsyncFixture>
 {
+    /// <summary>
+    /// The name of the collection for organizing related tests.
+    /// </summary>
     public const string CollectionName = "Microcks async collection";
 }
