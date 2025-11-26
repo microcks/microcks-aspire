@@ -19,7 +19,18 @@ namespace Microcks.Aspire;
 
 public static class MicrocksContainerImageTags
 {
+    /// <summary>
+    /// Name of the Microcks container image to use for testing.
+    /// </summary>
     public const string Image = "microcks/microcks-uber";
+
+    /// <summary>
+    /// Tag of the Microcks container image to use for testing.
+    /// </summary>
     public const string Tag = "1.13.0";
+
+    /// <summary>
+    /// Registry hosting the Microcks container image to use for testing.
+    /// </summary>
     public const string Registry = "quay.io";
 }

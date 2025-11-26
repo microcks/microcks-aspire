@@ -21,7 +21,9 @@ using Microcks.Aspire.HealthCheck;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Aspire.Hosting.ApplicationModel;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 /// <summary>
 /// Provides extension methods for <see cref="IResourceBuilder{T}"/> to add health checks.

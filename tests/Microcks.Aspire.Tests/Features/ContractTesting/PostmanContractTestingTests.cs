@@ -19,9 +19,9 @@ using System;
 using System.Threading.Tasks;
 using Microcks.Aspire.Clients.Model;
 using Microcks.Aspire.Testing.Features.Mocking.Contract;
-using Microcks.Aspire.Testing.Fixtures.Contract;
 using Aspire.Hosting;
 using Xunit;
+using Microcks.Aspire.Tests.Fixtures.Contract;
 
 namespace Microcks.Aspire.Tests.Features.ContractTesting;
 

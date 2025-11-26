@@ -19,10 +19,10 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Aspire.Hosting;
-using Microcks.Aspire;
+using Microcks.Aspire.Testing;
 using Xunit;
 
-namespace Microcks.Aspire.Testing.Fixtures;
+namespace Microcks.Aspire.Tests.Fixtures.Mock;
 
 /// <summary>
 /// Shared fixture that starts a single Microcks instance for all tests in the collection.

@@ -20,10 +20,10 @@ using System.IO;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
-using Microcks.Aspire;
+using Microcks.Aspire.Testing;
 using Xunit;
 
-namespace Microcks.Aspire.Testing.Fixtures.Contract;
+namespace Microcks.Aspire.Tests.Fixtures.Contract;
 
 /// <summary>
 /// Fixture that adds two container resources (bad/good implementations)
@@ -38,6 +38,7 @@ public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposa
     private const string BAD_PASTRY_IMAGE = "quay.io/microcks/contract-testing-demo:01";
     private const string GOOD_PASTRY_IMAGE = "quay.io/microcks/contract-testing-demo:02";
 
+    /// <inheritdoc />
     public async ValueTask InitializeAsync()
     {
         // Create builder without per-test ITestOutputHelper to avoid recreating logging per test

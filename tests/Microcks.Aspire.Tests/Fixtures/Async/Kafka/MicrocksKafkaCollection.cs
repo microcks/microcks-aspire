@@ -19,6 +19,9 @@ using Xunit;
 
 namespace Microcks.Aspire.Tests.Fixtures.Async.Kafka;
 
+/// <summary>
+/// Collection definition for tests using the <see cref="MicrocksKafkaFixture"/>.
+/// </summary>
 [CollectionDefinition(MicrocksKafkaCollection.CollectionName, DisableParallelization = true)]
 public sealed class MicrocksKafkaCollection : ICollectionFixture<MicrocksKafkaFixture>
 {

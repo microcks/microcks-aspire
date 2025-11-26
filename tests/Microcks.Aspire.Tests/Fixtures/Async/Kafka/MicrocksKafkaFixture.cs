@@ -39,6 +39,7 @@ public sealed class MicrocksKafkaFixture : IAsyncLifetime
     public MicrocksResource MicrocksResource { get; private set; } = default!;
     public KafkaServerResource KafkaResource { get; private set; } = default!;
 
+    /// <inheritdoc />
     public async ValueTask InitializeAsync()
     {
         Builder = TestDistributedApplicationBuilder.Create(o =>

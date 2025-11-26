@@ -38,14 +38,9 @@ namespace Microcks.Aspire.Tests.Features.Async.Kafka;
 /// Uses a shared Microcks instance with Async Minion and Kafka provided by <see cref="MicrocksKafkaFixture"/>.
 /// </summary>
 [Collection(MicrocksKafkaCollection.CollectionName)]
-public sealed class MicrocksKafkaTests
+public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
 {
-    private readonly MicrocksKafkaFixture _fixture;
-
-    public MicrocksKafkaTests(MicrocksKafkaFixture fixture)
-    {
-        _fixture = fixture;
-    }
+    private readonly MicrocksKafkaFixture _fixture = fixture;
 
     /// <summary>
     /// When the application is started, then the MicrocksAsyncMinionResource and Kafka are available.

@@ -40,6 +40,7 @@ public sealed class MicrocksAsyncFixture : IAsyncLifetime
     private const string BadPastryAsyncImage = "quay.io/microcks/contract-testing-demo-async:01";
     private const string GoodPastryAsyncImage = "quay.io/microcks/contract-testing-demo-async:02";
 
+    /// <inheritdoc />
     public async ValueTask InitializeAsync()
     {
         // Create builder without per-test ITestOutputHelper to avoid recreating logging per test

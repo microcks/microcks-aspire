@@ -23,10 +23,12 @@ using Aspire.Hosting.Lifecycle;
 using Microcks.Aspire;
 using Microcks.Aspire.Async;
 using Microcks.Aspire.FileArtifacts;
-using Microcks.Aspire.HealthCheck;
 using Microcks.Aspire.MainRemoteArtifacts;
+using Microcks.Aspire.PostmanRunner;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Aspire.Hosting;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 /// <summary>
 /// Extension methods to configure a Microcks resource on a distributed
