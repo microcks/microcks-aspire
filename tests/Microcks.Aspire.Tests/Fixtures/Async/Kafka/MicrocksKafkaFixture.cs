@@ -26,11 +26,6 @@ using Aspire.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-using Xunit.Sdk;
-using Xunit.v3;
-
-// Both standard output and standard error
-[assembly: CaptureConsole]
 namespace Microcks.Aspire.Tests.Fixtures.Async.Kafka;
 
 /// <summary>
@@ -44,21 +39,12 @@ public sealed class MicrocksKafkaFixture : IAsyncLifetime
     public MicrocksResource MicrocksResource { get; private set; } = default!;
     public KafkaServerResource KafkaResource { get; private set; } = default!;
 
-    public ITestOutputHelper TestOutputHelper { get; private set; }
-
-    public MicrocksKafkaFixture(ITestOutputHelper outputHelper) : this()
-    {
-        TestOutputHelper = outputHelper;
-    }
-    public MicrocksKafkaFixture()
-    {
-    }
     public async ValueTask InitializeAsync()
     {
         Builder = TestDistributedApplicationBuilder.Create(o =>
         {
             o.EnableResourceLogging = true;
-        }).WithTestAndResourceLogging(TestOutputHelper);
+        });
 
         Builder.Services.AddLogging(logging =>
         {
@@ -67,11 +53,6 @@ public sealed class MicrocksKafkaFixture : IAsyncLifetime
             {
                 configure.SingleLine = true;
             });
-
-            logging.SetMinimumLevel(LogLevel.Warning);
-            logging.AddFilter("Aspire", LogLevel.Debug);
-            logging.AddFilter("Microcks.Aspire.Testing.Resources.kafka[0]", LogLevel.Warning);
-            logging.AddFilter(Builder.Environment.ApplicationName, LogLevel.Trace);
         });
 
         // Add Kafka server

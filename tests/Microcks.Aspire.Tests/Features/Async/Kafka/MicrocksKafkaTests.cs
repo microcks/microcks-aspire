@@ -149,14 +149,22 @@ public sealed class MicrocksKafkaTests
         // Wait a bit to let the test initialize
         await Task.Delay(750, TestContext.Current.CancellationToken);
 
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new() { MaxRetryAttempts = 10, Delay = TimeSpan.FromSeconds(1), ShouldHandle = new PredicateBuilder().Handle<ProduceException<string, string>>() })
+            .Build();
+
         // Act
         for (var i = 0; i < 5; i++)
         {
-            producer.Produce("pastry-orders", new Message<string, string>
+            await pipeline.ExecuteAsync(async cancellationToken =>
             {
-                Key = Guid.NewGuid().ToString(),
-                Value = message
-            });
+                var deliveryResult = await producer.ProduceAsync("pastry-orders", new Message<string, string>
+                {
+                    Key = Guid.NewGuid().ToString(),
+                    Value = message
+                }, cancellationToken);
+            }, TestContext.Current.CancellationToken);
+
             producer.Flush(TestContext.Current.CancellationToken);
             await Task.Delay(500, TestContext.Current.CancellationToken);
         }
@@ -214,14 +222,23 @@ public sealed class MicrocksKafkaTests
         // Wait a bit to let the test initialize
         await Task.Delay(750, TestContext.Current.CancellationToken);
 
+        // Retry policy for producing messages
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new() { MaxRetryAttempts = 10, Delay = TimeSpan.FromSeconds(1), ShouldHandle = new PredicateBuilder().Handle<ProduceException<string, string>>() })
+            .Build();
+
         // Act
         for (var i = 0; i < 5; i++)
         {
-            producer.Produce("pastry-orders", new Message<string, string>
+            await pipeline.ExecuteAsync(async cancellationToken =>
             {
-                Key = Guid.NewGuid().ToString(),
-                Value = message
-            });
+                var deliveryResult = await producer.ProduceAsync("pastry-orders", new Message<string, string>
+                {
+                    Key = Guid.NewGuid().ToString(),
+                    Value = message
+                }, cancellationToken);
+            }, TestContext.Current.CancellationToken);
+
             producer.Flush(TestContext.Current.CancellationToken);
             await Task.Delay(500, TestContext.Current.CancellationToken);
         }
