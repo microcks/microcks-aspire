@@ -215,7 +215,7 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
 
         // Wait a bit to let the test initialize
-        await Task.Delay(2750, TestContext.Current.CancellationToken);
+        await Task.Delay(750, TestContext.Current.CancellationToken);
 
         // Retry policy for producing messages
         var pipeline = new ResiliencePipelineBuilder()
@@ -289,7 +289,10 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
             = await kafkaConnectionStringExpression.GetValueAsync(TestContext.Current.CancellationToken);
 
         // Add Kafka producer and consumer (kafka is the name of the resource in the fixture)
-        hostBuilder.AddKafkaProducer<string, string>("kafka");
+        hostBuilder.AddKafkaProducer<string, string>("kafka", producerBuilder =>
+        {
+            producerBuilder.Config.Acks = Acks.All;
+        });
         hostBuilder.AddKafkaConsumer<string, string>("kafka", consumerBuilder =>
         {
             consumerBuilder.Config.GroupId = "aspire-consumer-group";
