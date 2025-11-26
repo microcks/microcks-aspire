@@ -34,6 +34,10 @@ public sealed class PostmanContractTestingTests(MicrocksContractValidationFixtur
 {
     private readonly MicrocksContractValidationFixture _fixture = fixture;
 
+    /// <summary>
+    /// Tests calling the TestEndpoint API of Microcks with the bad implementation,
+    /// expecting validation failures.
+    /// </summary>
     [Fact]
     public async Task WhenCallingTestEndpoint_WithBadImplementation_ShouldReturnValidationFailures()
     {

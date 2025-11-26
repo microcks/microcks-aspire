@@ -215,7 +215,7 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
 
         // Wait a bit to let the test initialize
-        await Task.Delay(750, TestContext.Current.CancellationToken);
+        await Task.Delay(2750, TestContext.Current.CancellationToken);
 
         // Retry policy for producing messages
         var pipeline = new ResiliencePipelineBuilder()

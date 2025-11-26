@@ -2,7 +2,6 @@
     <PropertyGroup>
         <IsTestProject>false</IsTestProject>
         <IsPackable>false</IsPackable>
-        <IsAspireHost>true</IsAspireHost>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
