@@ -17,9 +17,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Include="Aspire.Hosting.Testing" Version="9.5.2" />
-    <PackageReference Include="Aspire.Hosting.Kafka" Version="9.5.2" />
-    <PackageReference Include="Aspire.Confluent.Kafka" Version="9.5.2" />
+    <PackageReference Include="Aspire.Hosting.Testing" Version="13.0.0" />
+    <PackageReference Include="Aspire.Hosting.Kafka" Version="13.0.0" />
+    <PackageReference Include="Aspire.Confluent.Kafka" Version="13.0.0" />
   </ItemGroup>
   <ItemGroup>
       <None Include="resources\**" CopyToOutputDirectory="PreserveNewest" />

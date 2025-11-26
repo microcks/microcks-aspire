@@ -8,8 +8,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="MartinCostello.Logging.XUnit.v3" Version="0.6.0" />
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.2" IsAspireProjectResource="false" />
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.10.0" />
+        <PackageReference Include="MartinCostello.Logging.XUnit.v3" Version="0.7.0" />
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.0.0" IsAspireProjectResource="false" />
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.0.0" />
     </ItemGroup>
 </Project>
