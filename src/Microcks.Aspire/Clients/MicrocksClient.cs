@@ -42,8 +42,8 @@ internal sealed class MicrocksClient : IMicrocksClient
     /// Initializes a new instance of the <see cref="MicrocksClient"/> class.
     /// </summary>
     /// <param name="client">The Microcks client to use for HTTP operations.</param>
-    /// <param name="logger">The logger instance for logging operations.</param>
-    /// <exception cref="ArgumentNullException">Thrown if client or logger is null.</exception>
+    /// <param name="loggerFactory">The logger factory for creating logger instances.</param>
+    /// <exception cref="ArgumentNullException">Thrown if client or loggerFactory is null.</exception>
     public MicrocksClient(IMicrocksEndpoint client, ILoggerFactory loggerFactory)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
@@ -298,12 +298,11 @@ internal sealed class MicrocksClient : IMicrocksClient
     /// <summary>
     /// Retrieve event messages received during a test on an endpoint (for further investigation or checks).
     /// </summary>
-    /// <param name="container">Microcks container</param>
     /// <param name="testResult">The test result to retrieve events from</param>
     /// <param name="operationName">The name of the operation to retrieve events to test result</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of UnidirectionalEvent</returns>
-    /// <exception cref="MicrocksException">If events have not been correctly retrieved</exception>
+    /// <exception cref="HttpRequestException">If events have not been correctly retrieved</exception>
     /// <inheritdoc />
     public async Task<List<UnidirectionalEvent>> GetEventMessagesForTestCaseAsync(
         TestResult testResult, string operationName, CancellationToken cancellationToken = default)

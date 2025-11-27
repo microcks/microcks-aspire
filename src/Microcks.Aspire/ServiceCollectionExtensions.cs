@@ -34,6 +34,7 @@ internal static class ServiceCollectionExtensions
     /// Adds Aspire Microcks hosting services to the service collection.
     /// </summary>
     /// <param name="services">The service collection to extend.</param>
+    /// <param name="microcksResource">The Microcks resource to configure the client for.</param>
     /// <returns>The updated service collection.</returns>
     public static IServiceCollection ConfigureMicrocksClient(this IServiceCollection services, MicrocksResource microcksResource)
     {

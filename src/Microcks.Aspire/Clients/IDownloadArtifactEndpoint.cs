@@ -32,6 +32,7 @@ public interface IDownloadArtifactEndpoint
     /// </summary>
     /// <param name="mainArtifact">Indicates if the artifact is the main one.</param>
     /// <param name="url">The remote URL of the artifact.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>The HTTP response from Microcks.</returns>
     [Post("/api/artifact/download")]
     [Headers("Accept: application/json")]

@@ -190,7 +190,7 @@ public static class MicrocksBuilderExtensions
     /// the main Microcks instance.
     /// </summary>
     /// <param name="builder">The resource builder for the Microcks resource.</param>
-    /// <returns>The same <see cref="IResourceBuilder{MicrocksResource}"/>
+    /// <returns>The same <see cref="IResourceBuilder{MicrocksResource}"/>.</returns>
     public static IResourceBuilder<MicrocksResource> WithAsyncFeature(
         this IResourceBuilder<MicrocksResource> microcksBuilder,
         Action<IResourceBuilder<MicrocksAsyncMinionResource>>? configureAsyncMinion = null)
@@ -278,7 +278,7 @@ public static class MicrocksBuilderExtensions
     /// Configures the Microcks resource to include and enable a Postman runner.
     /// This allows Microcks to execute Postman collections for API mocking and testing.
     /// </summary>
-    /// <param name="builder">The <see cref="IResourceBuilder{T}"/>.</param>
+    /// <param name="microcksBuilder">The <see cref="IResourceBuilder{T}"/>.</param>
     /// <param name="configurePostman">An optional action to further configure the Postman resource.</param>
     /// <param name="containerName">An optional name for the Postman container. If not provided, a default name will be used.</param>
     /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
