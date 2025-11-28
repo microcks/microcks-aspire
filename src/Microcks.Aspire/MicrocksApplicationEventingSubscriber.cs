@@ -49,7 +49,7 @@ internal sealed class MicrocksApplicationEventingSubscriber
     private IServiceProvider _serviceProvider;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MicrocksResourceLifecycleHook"/> class.
+    /// Initializes a new instance of the <see cref="MicrocksApplicationEventingSubscriber"/> class.
     /// </summary>
     /// <param name="loggerFactory">Factory used to create loggers for resources.</param>
     /// <param name="resourceNotificationService">Service used to publish resource state changes.</param>

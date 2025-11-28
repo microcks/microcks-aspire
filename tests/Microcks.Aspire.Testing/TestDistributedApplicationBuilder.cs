@@ -31,6 +31,14 @@ namespace Microcks.Aspire.Testing;
 /// </summary>
 public static class TestDistributedApplicationBuilder
 {
+    /// <summary>
+    /// Creates a new instance of <see cref="IDistributedApplicationTestingBuilder"/> with the specified operation.
+    /// </summary>
+    /// <param name="operation">The distributed application operation (Run or Publish).</param>
+    /// <param name="publisher">The publisher type for publish operations.</param>
+    /// <param name="outputPath">The output path for publish operations.</param>
+    /// <param name="isDeploy">Whether this is a deployment operation.</param>
+    /// <returns>A new <see cref="IDistributedApplicationTestingBuilder"/> instance.</returns>
     public static IDistributedApplicationTestingBuilder Create(DistributedApplicationOperation operation, string publisher = "manifest", string outputPath = "./", bool isDeploy = false)
     {
         var args = operation switch
@@ -43,21 +51,43 @@ public static class TestDistributedApplicationBuilder
         return Create(args);
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="IDistributedApplicationTestingBuilder"/> with the specified command-line arguments.
+    /// </summary>
+    /// <param name="args">Optional command-line arguments.</param>
+    /// <returns>A new <see cref="IDistributedApplicationTestingBuilder"/> instance.</returns>
     public static IDistributedApplicationTestingBuilder Create(params string[] args)
     {
         return CreateCore(args, (_) => { });
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="IDistributedApplicationTestingBuilder"/> with the specified test output helper and command-line arguments.
+    /// </summary>
+    /// <param name="testOutputHelper">The xUnit test output helper for logging.</param>
+    /// <param name="args">Optional command-line arguments.</param>
+    /// <returns>A new <see cref="IDistributedApplicationTestingBuilder"/> instance.</returns>
     public static IDistributedApplicationTestingBuilder Create(ITestOutputHelper testOutputHelper, params string[] args)
     {
         return CreateCore(args, (_) => { }, testOutputHelper);
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="IDistributedApplicationTestingBuilder"/> with optional configuration and test output helper.
+    /// </summary>
+    /// <param name="configureOptions">An optional action to configure the distributed application options.</param>
+    /// <param name="testOutputHelper">An optional xUnit test output helper for logging.</param>
+    /// <returns>A new <see cref="IDistributedApplicationTestingBuilder"/> instance.</returns>
     public static IDistributedApplicationTestingBuilder Create(Action<DistributedApplicationOptions>? configureOptions, ITestOutputHelper? testOutputHelper = null)
     {
         return CreateCore([], configureOptions, testOutputHelper);
     }
 
+    /// <summary>
+    /// Creates a new instance with test container registry override.
+    /// </summary>
+    /// <param name="testOutputHelper">The xUnit test output helper for logging.</param>
+    /// <returns>A new <see cref="IDistributedApplicationTestingBuilder"/> instance.</returns>
     public static IDistributedApplicationTestingBuilder CreateWithTestContainerRegistry(ITestOutputHelper testOutputHelper) =>
         Create(o => o.ContainerRegistryOverride = ComponentTestConstants.AspireTestContainerRegistry, testOutputHelper);
 
@@ -76,7 +106,13 @@ public static class TestDistributedApplicationBuilder
     }
 }
 
+/// <summary>
+/// Constants used for component testing.
+/// </summary>
 public static class ComponentTestConstants
 {
+    /// <summary>
+    /// The Aspire test container registry URL.
+    /// </summary>
     public const string AspireTestContainerRegistry = "netaspireci.azurecr.io";
 }

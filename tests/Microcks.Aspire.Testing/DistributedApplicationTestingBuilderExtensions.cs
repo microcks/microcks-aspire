@@ -29,10 +29,20 @@ namespace Microcks.Aspire.Testing;
 /// </summary>
 public static class DistributedApplicationTestingBuilderExtensions
 {
-    // Returns the unique prefix used for volumes from unnamed volumes this builder
+    /// <summary>
+    /// Returns the unique prefix used for volumes from unnamed volumes this builder.
+    /// </summary>
+    /// <param name="builder">The distributed application testing builder.</param>
+    /// <returns>The volume prefix string.</returns>
     public static string GetVolumePrefix(this IDistributedApplicationTestingBuilder builder) =>
         $"{Sanitize(builder.Environment.ApplicationName).ToLowerInvariant()}-{builder.Configuration["AppHost:Sha256"]!.ToLowerInvariant()[..10]}";
 
+    /// <summary>
+    /// Configures the builder to forward logs from tests and resources to the specified test output helper.
+    /// </summary>
+    /// <param name="builder">The distributed application testing builder.</param>
+    /// <param name="testOutputHelper">The xUnit test output helper for logging.</param>
+    /// <returns>The builder for method chaining.</returns>
     public static IDistributedApplicationTestingBuilder WithTestAndResourceLogging(this IDistributedApplicationTestingBuilder builder, ITestOutputHelper testOutputHelper)
     {
         builder.Services.AddLogging(builder => builder.AddXUnit());
@@ -40,6 +50,12 @@ public static class DistributedApplicationTestingBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Configures the builder to use a temporary Aspire store path.
+    /// </summary>
+    /// <param name="builder">The distributed application testing builder.</param>
+    /// <param name="path">Optional custom path for the Aspire store. If null, a temporary directory is created.</param>
+    /// <returns>The builder for method chaining.</returns>
     public static IDistributedApplicationTestingBuilder WithTempAspireStore(this IDistributedApplicationTestingBuilder builder, string? path = null)
     {
         // We create the Aspire Store in a folder with user-only access. This way non-root containers won't be able
@@ -49,6 +65,12 @@ public static class DistributedApplicationTestingBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Configures whether to wait for resource cleanup on shutdown.
+    /// </summary>
+    /// <param name="builder">The distributed application testing builder.</param>
+    /// <param name="resourceCleanup">Whether to wait for resource cleanup. If null, uses default behavior.</param>
+    /// <returns>The builder for method chaining.</returns>
     public static IDistributedApplicationTestingBuilder WithResourceCleanUp(this IDistributedApplicationTestingBuilder builder, bool? resourceCleanup = null)
     {
         builder.Configuration["DcpPublisher:WaitForResourceCleanup"] = resourceCleanup.ToString();
