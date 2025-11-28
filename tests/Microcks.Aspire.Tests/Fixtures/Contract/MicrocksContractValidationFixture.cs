@@ -49,10 +49,7 @@ public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposa
     private const string BAD_PASTRY_IMAGE = "quay.io/microcks/contract-testing-demo:01";
     private const string GOOD_PASTRY_IMAGE = "quay.io/microcks/contract-testing-demo:02";
 
-    /// <summary>
-    /// Initializes the shared distributed application with Microcks and test implementation containers.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <inheritdoc />
     public async ValueTask InitializeAsync()
     {
         // Create builder without per-test ITestOutputHelper to avoid recreating logging per test

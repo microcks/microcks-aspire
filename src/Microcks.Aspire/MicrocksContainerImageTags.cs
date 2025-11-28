@@ -28,12 +28,12 @@ public static class MicrocksContainerImageTags
     public const string Image = "microcks/microcks-uber";
 
     /// <summary>
-    /// The default Docker image tag (version) for the Microcks container.
+    /// Tag of the Microcks container image to use for testing.
     /// </summary>
     public const string Tag = "1.13.0";
 
     /// <summary>
-    /// The default Docker registry where the Microcks container image is hosted.
+    /// Registry hosting the Microcks container image to use for testing.
     /// </summary>
     public const string Registry = "quay.io";
 }
