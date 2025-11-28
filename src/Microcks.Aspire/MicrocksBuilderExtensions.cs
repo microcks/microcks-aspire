@@ -186,11 +186,12 @@ public static class MicrocksBuilderExtensions
 
 
     /// <summary>
-    /// Configures the Microcks resource to deploy an Async Minion alongside
-    /// the main Microcks instance.
+    /// Configures the Microcks resource to include and enable an Async Minion.
+    /// This allows Microcks to handle asynchronous messaging protocols.
     /// </summary>
-    /// <param name="builder">The resource builder for the Microcks resource.</param>
-    /// <returns>The same <see cref="IResourceBuilder{MicrocksResource}"/>.</returns>
+    /// <param name="microcksBuilder">The <see cref="IResourceBuilder{T}"/>.</param>
+    /// <param name="configureAsyncMinion">An optional action to further configure the Async Minion resource.</param>
+    /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
     public static IResourceBuilder<MicrocksResource> WithAsyncFeature(
         this IResourceBuilder<MicrocksResource> microcksBuilder,
         Action<IResourceBuilder<MicrocksAsyncMinionResource>>? configureAsyncMinion = null)

@@ -110,7 +110,6 @@ public interface IMicrocksClient
     /// <param name="operationName">The name of the operation to retrieve events to test result</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of UnidirectionalEvent</returns>
-    /// <exception cref="HttpRequestException">If events have not been correctly retrieved</exception>
     /// <inheritdoc />
     public Task<List<UnidirectionalEvent>> GetEventMessagesForTestCaseAsync(
         TestResult testResult, string operationName, CancellationToken cancellationToken);
