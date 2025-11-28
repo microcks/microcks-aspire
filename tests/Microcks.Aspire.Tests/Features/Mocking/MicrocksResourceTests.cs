@@ -23,10 +23,8 @@ using System.Threading.Tasks;
 
 using Aspire.Hosting.Testing;
 using Aspire.Hosting;
-
-using Microcks.Aspire.Testing.Fixtures.Mock;
 using Microcks.Aspire.Clients;
-using Microcks.Aspire.Testing.Fixtures;
+using Microcks.Aspire.Tests.Fixtures.Mock;
 
 namespace Microcks.Aspire.Tests.Features.Mocking;
 

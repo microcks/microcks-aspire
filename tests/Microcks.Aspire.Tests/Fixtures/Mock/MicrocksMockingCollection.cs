@@ -17,7 +17,7 @@
 
 using Xunit;
 
-namespace Microcks.Aspire.Testing.Fixtures.Mock;
+namespace Microcks.Aspire.Tests.Fixtures.Mock;
 
 /// <summary>
 /// Collection definition used to share the <see cref="SharedMicrocksFixture"/>
@@ -27,6 +27,8 @@ namespace Microcks.Aspire.Testing.Fixtures.Mock;
 [CollectionDefinition(MicrocksMockingCollection.CollectionName)]
 public class MicrocksMockingCollection : ICollectionFixture<MicrocksMockingFixture>
 {
-    // Collection definition for sharing a single Microcks instance across tests
+    /// <summary>
+    /// Collection definition for sharing a single Microcks instance across tests
+    /// </summary>
     public const string CollectionName = "Microcks mocking collection";
 }

@@ -40,14 +40,9 @@ namespace Microcks.Aspire.Tests.Features.Async;
 /// Uses a shared Microcks instance with Async Minion provided by <see cref="MicrocksAsyncFixture"/>.
 /// </summary>
 [Collection(MicrocksAsyncCollection.CollectionName)]
-public sealed class MicrocksAsyncTests
+public sealed class MicrocksAsyncTests(MicrocksAsyncFixture fixture)
 {
-    private MicrocksAsyncFixture _fixture;
-
-    public MicrocksAsyncTests(MicrocksAsyncFixture fixture)
-    {
-        _fixture = fixture;
-    }
+    private MicrocksAsyncFixture _fixture = fixture;
 
     /// <summary>
     /// When the application is started, then the MicrocksAsyncMinionResource is available.

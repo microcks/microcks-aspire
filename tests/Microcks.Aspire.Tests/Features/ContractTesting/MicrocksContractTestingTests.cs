@@ -20,13 +20,11 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 using Xunit;
-
-using Microcks.Aspire.Testing.Fixtures.Contract;
 using Microcks.Aspire.Clients.Model;
 using Microcks.Aspire.Testing.Features.Mocking.Contract;
 
 using Aspire.Hosting;
-using Aspire.Hosting.Testing;
+using Microcks.Aspire.Tests.Fixtures.Contract;
 
 namespace Microcks.Aspire.Tests.Features.ContractTesting;
 

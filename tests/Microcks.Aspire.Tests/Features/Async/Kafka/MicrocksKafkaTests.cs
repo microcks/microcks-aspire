@@ -29,6 +29,7 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Xunit;
 using Aspire.Hosting;
+using System.Text.Json;
 
 namespace Microcks.Aspire.Tests.Features.Async.Kafka;
 
@@ -37,14 +38,9 @@ namespace Microcks.Aspire.Tests.Features.Async.Kafka;
 /// Uses a shared Microcks instance with Async Minion and Kafka provided by <see cref="MicrocksKafkaFixture"/>.
 /// </summary>
 [Collection(MicrocksKafkaCollection.CollectionName)]
-public sealed class MicrocksKafkaTests
+public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
 {
-    private readonly MicrocksKafkaFixture _fixture;
-
-    public MicrocksKafkaTests(MicrocksKafkaFixture fixture)
-    {
-        _fixture = fixture;
-    }
+    private readonly MicrocksKafkaFixture _fixture = fixture;
 
     /// <summary>
     /// When the application is started, then the MicrocksAsyncMinionResource and Kafka are available.
@@ -148,20 +144,32 @@ public sealed class MicrocksKafkaTests
         // Wait a bit to let the test initialize
         await Task.Delay(750, TestContext.Current.CancellationToken);
 
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new() { MaxRetryAttempts = 10, Delay = TimeSpan.FromSeconds(1), ShouldHandle = new PredicateBuilder().Handle<ProduceException<string, string>>() })
+            .Build();
+
         // Act
         for (var i = 0; i < 5; i++)
         {
-            producer.Produce("pastry-orders", new Message<string, string>
+            await pipeline.ExecuteAsync(async cancellationToken =>
             {
-                Key = Guid.NewGuid().ToString(),
-                Value = message
-            });
+                var deliveryResult = await producer.ProduceAsync("pastry-orders", new Message<string, string>
+                {
+                    Key = Guid.NewGuid().ToString(),
+                    Value = message
+                }, cancellationToken);
+            }, TestContext.Current.CancellationToken);
+
             producer.Flush(TestContext.Current.CancellationToken);
             await Task.Delay(500, TestContext.Current.CancellationToken);
         }
 
         // Wait for a test result
         var testResult = await taskTestResult;
+
+        // You may inspect complete response object with following:
+        var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
+        TestContext.Current.TestOutputHelper.WriteLine(json);
 
         // Assert
         Assert.False(testResult.InProgress);
@@ -194,7 +202,7 @@ public sealed class MicrocksKafkaTests
             ServiceId = "Pastry orders API:0.1.0",
             RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
             TestEndpoint = "kafka://kafka:9093/pastry-orders", // 9093 is the internal Docker network port
-            Timeout = TimeSpan.FromSeconds(5)
+            Timeout = TimeSpan.FromMilliseconds(40000)
         };
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
@@ -209,20 +217,33 @@ public sealed class MicrocksKafkaTests
         // Wait a bit to let the test initialize
         await Task.Delay(750, TestContext.Current.CancellationToken);
 
+        // Retry policy for producing messages
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new() { MaxRetryAttempts = 10, Delay = TimeSpan.FromSeconds(1), ShouldHandle = new PredicateBuilder().Handle<ProduceException<string, string>>() })
+            .Build();
+
         // Act
         for (var i = 0; i < 5; i++)
         {
-            producer.Produce("pastry-orders", new Message<string, string>
+            await pipeline.ExecuteAsync(async cancellationToken =>
             {
-                Key = Guid.NewGuid().ToString(),
-                Value = message
-            });
+                var deliveryResult = await producer.ProduceAsync("pastry-orders", new Message<string, string>
+                {
+                    Key = Guid.NewGuid().ToString(),
+                    Value = message
+                }, cancellationToken);
+            }, TestContext.Current.CancellationToken);
+
             producer.Flush(TestContext.Current.CancellationToken);
             await Task.Delay(500, TestContext.Current.CancellationToken);
         }
 
         // Wait for a test result
         var testResult = await taskTestResult;
+
+        // You may inspect complete response object with following:
+        var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
+        TestContext.Current.TestOutputHelper.WriteLine(json);
 
         // Assert
         Assert.False(testResult.InProgress, "Test should have completed");
@@ -268,7 +289,10 @@ public sealed class MicrocksKafkaTests
             = await kafkaConnectionStringExpression.GetValueAsync(TestContext.Current.CancellationToken);
 
         // Add Kafka producer and consumer (kafka is the name of the resource in the fixture)
-        hostBuilder.AddKafkaProducer<string, string>("kafka");
+        hostBuilder.AddKafkaProducer<string, string>("kafka", producerBuilder =>
+        {
+            producerBuilder.Config.Acks = Acks.All;
+        });
         hostBuilder.AddKafkaConsumer<string, string>("kafka", consumerBuilder =>
         {
             consumerBuilder.Config.GroupId = "aspire-consumer-group";

@@ -20,11 +20,14 @@ using Aspire.Hosting.ApplicationModel;
 
 namespace Microcks.Aspire.Async;
 
-public class MicrocksAsyncMinionResource : ContainerResource
+/// <summary>
+/// Represents a Microcks Async Minion container resource within an Aspire distributed application.
+/// This class provides methods to retrieve mock endpoints for different asynchronous service protocols, including WebSocket and Kafka.
+/// It is intended for use in service discovery and integration testing scenarios.
+/// </summary>
+/// <param name="name"></param>
+public class MicrocksAsyncMinionResource(string name) : ContainerResource(name)
 {
-    public MicrocksAsyncMinionResource(string name) : base(name)
-    {
-    }
     private const string DestinationPattern = "{0}-{1}-{2}";
 
     internal const string PrimaryEndpointName = "http";

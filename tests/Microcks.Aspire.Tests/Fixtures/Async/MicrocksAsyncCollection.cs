@@ -19,6 +19,9 @@ using Xunit;
 
 namespace Microcks.Aspire.Tests.Fixtures.Async;
 
+/// <summary>
+/// Collection definition for tests using the <see cref="MicrocksAsyncFixture"/>.
+/// </summary>
 [CollectionDefinition(MicrocksAsyncCollection.CollectionName)]
 public sealed class MicrocksAsyncCollection : ICollectionFixture<MicrocksAsyncFixture>
 {

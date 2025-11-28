@@ -15,7 +15,7 @@
 //
 //
 
-using Microcks.Aspire.Testing.Fixtures.Contract;
+using Microcks.Aspire.Tests.Fixtures.Contract;
 using Xunit;
 
 namespace Microcks.Aspire.Testing.Features.Mocking.Contract;
@@ -28,6 +28,8 @@ namespace Microcks.Aspire.Testing.Features.Mocking.Contract;
 [CollectionDefinition(MicrocksContractValidationCollection.CollectionName)]
 public class MicrocksContractValidationCollection : ICollectionFixture<MicrocksContractValidationFixture>
 {
-    // Collection definition for sharing Microcks with Bad-Implementation and Good-Implementation resources.
+    /// <summary>
+    /// Collection name for tests using the <see cref="MicrocksContractValidationFixture"/>.
+    /// </summary>
     public const string CollectionName = "Microcks contract collection";
 }

@@ -17,7 +17,7 @@
 
 using Aspire.Hosting.ApplicationModel;
 
-namespace Microcks.Aspire;
+namespace Microcks.Aspire.PostmanRunner;
 
 /// <summary>
 /// Represents a Microcks Postman Runner container resource within an Aspire distributed application.

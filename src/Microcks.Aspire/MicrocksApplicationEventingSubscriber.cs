@@ -22,6 +22,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Aspire.Hosting.Eventing;
 using Aspire.Hosting.Lifecycle;
 using Microcks.Aspire.Clients;
 using Microcks.Aspire.FileArtifacts;
@@ -32,14 +33,14 @@ using Microsoft.Extensions.Logging;
 namespace Microcks.Aspire;
 
 /// <summary>
-/// Lifecycle hook that initializes Microcks resources after containers are
+/// Subscriber that initializes Microcks resources after containers are
 /// created. When the distributed application is running (not in publish
-/// mode), this hook watches the Microcks container logs for readiness,
+/// mode), this subscriber watches the Microcks container logs for readiness,
 /// uploads configured artifacts, imports remote artifacts and snapshots,
 /// and waits for the service health endpoint to become available.
 /// </summary>
-internal sealed class MicrocksResourceLifecycleHook
-    : IDistributedApplicationLifecycleHook, IAsyncDisposable
+internal sealed class MicrocksApplicationEventingSubscriber
+    : IDistributedApplicationEventingSubscriber, IAsyncDisposable
 {
     private readonly CancellationTokenSource _shutdownCancellationTokenSource = new();
     private ILogger<MicrocksResource> _logger;
@@ -55,7 +56,7 @@ internal sealed class MicrocksResourceLifecycleHook
     /// <param name="resourceNotificationService">Service used to publish resource state changes.</param>
     /// <param name="executionContext">Execution context describing run/publish mode.</param>
     /// <param name="serviceProvider">Service provider for resolving scoped services.</param>
-    public MicrocksResourceLifecycleHook(
+    public MicrocksApplicationEventingSubscriber(
         ILoggerFactory loggerFactory,
         ResourceNotificationService resourceNotificationService,
         DistributedApplicationExecutionContext executionContext,
@@ -69,14 +70,22 @@ internal sealed class MicrocksResourceLifecycleHook
         _serviceProvider = serviceProvider;
     }
 
+    /// <inheritdoc />
+    public Task SubscribeAsync(IDistributedApplicationEventing eventing, DistributedApplicationExecutionContext executionContext, CancellationToken cancellationToken)
+    {
+        eventing.Subscribe<AfterResourcesCreatedEvent>(AfterResourcesCreatedAsync);
+        return Task.CompletedTask;
+    }
+
     /// <summary>
     /// Called after container resources have been created. For each Microcks
     /// resource this hook will attach a logger, wait for the service to be
     /// ready, and then upload/import configured artifacts and snapshots.
     /// </summary>
-    /// <param name="appModel">The distributed application model containing created resources.</param>
+    /// <param name="event">The event containing the distributed application model with created resources.</param>
     /// <param name="cancellationToken">A token to observe while waiting for resources or performing imports.</param>
-    public async Task AfterResourcesCreatedAsync(DistributedApplicationModel appModel, CancellationToken cancellationToken = default)
+    private async Task AfterResourcesCreatedAsync(
+        AfterResourcesCreatedEvent @event, CancellationToken cancellationToken = default)
     {
         // MicrocksResourceLifecycleHook only applies to RunMode
         if (_executionContext.IsPublishMode)
@@ -84,6 +93,7 @@ internal sealed class MicrocksResourceLifecycleHook
             return;
         }
 
+        var appModel = @event.Model;
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _shutdownCancellationTokenSource.Token,
             cancellationToken);
