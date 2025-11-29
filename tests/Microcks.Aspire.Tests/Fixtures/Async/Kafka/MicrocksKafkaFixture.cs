@@ -50,14 +50,15 @@ public sealed class MicrocksKafkaFixture : IAsyncLifetime
         Builder.Services.AddLogging(logging =>
         {
             //logging.ClearProviders();
-            logging.AddSimpleConsole(configure =>
-            {
-                configure.SingleLine = true;
-            });
+            logging.AddConsole();
+
+            logging.SetMinimumLevel(LogLevel.Trace);
+            logging.AddFilter("Aspire.", LogLevel.Debug);
         });
 
         // Add Kafka server
-        var kafkaBuilder = Builder.AddKafka("kafka");
+        var kafkaBuilder = Builder.AddKafka("kafka")
+            .WithKafkaUI();
 
         // Microcks with AsyncMinion
         var microcksBuilder = Builder.AddMicrocks("microcks-pastry")

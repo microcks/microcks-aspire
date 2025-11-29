@@ -18,12 +18,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
 using Microcks.Aspire.Async;
 using Microcks.Aspire.Clients.Model;
 using Microcks.Aspire.Tests.Fixtures.Async.Kafka;
 using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
@@ -134,15 +136,19 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
 
-        // Get Kafka producer from host
+        // Get Kafka producer and admin client from host
         var producer = host.Services.GetRequiredService<IProducer<string, string>>();
+        var adminClient = host.Services.GetRequiredService<IAdminClient>();
 
         // Start the test (this will fail initially as there are no messages being sent)
         // but it validates that the test setup and endpoint format are correct
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
+        
+        TestContext.Current.TestOutputHelper
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Test started...");
 
-        // Wait a bit to let the test initialize
-        await Task.Delay(750, TestContext.Current.CancellationToken);
+        // Wait for the Microcks Async Minion consumer to connect to the Kafka topic
+        await WaitForMinionConsumerAsync(adminClient, TestContext.Current.CancellationToken);
 
         var pipeline = new ResiliencePipelineBuilder()
             .AddRetry(new() { MaxRetryAttempts = 10, Delay = TimeSpan.FromSeconds(1), ShouldHandle = new PredicateBuilder().Handle<ProduceException<string, string>>() })
@@ -202,20 +208,24 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
             ServiceId = "Pastry orders API:0.1.0",
             RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
             TestEndpoint = "kafka://kafka:9093/pastry-orders", // 9093 is the internal Docker network port
-            Timeout = TimeSpan.FromMilliseconds(40000)
+            Timeout = TimeSpan.FromMilliseconds(30000)
         };
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
 
-        // Get Kafka producer from host
+        // Get Kafka producer and admin client from host
         var producer = host.Services.GetRequiredService<IProducer<string, string>>();
+        var adminClient = host.Services.GetRequiredService<IAdminClient>();
 
         // Start the test (this will fail initially as there are no messages being sent)
         // but it validates that the test setup and endpoint format are correct
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
-
-        // Wait a bit to let the test initialize
-        await Task.Delay(750, TestContext.Current.CancellationToken);
+        
+        TestContext.Current.TestOutputHelper
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Test started...");
+            
+        // Wait for the Microcks Async Minion consumer to connect to the Kafka topic
+        await WaitForMinionConsumerAsync(adminClient, TestContext.Current.CancellationToken);
 
         // Retry policy for producing messages
         var pipeline = new ResiliencePipelineBuilder()
@@ -264,7 +274,7 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
             testResult, "SUBSCRIBE pastry/orders", TestContext.Current.CancellationToken);
 
         // We should have at least 4 events.
-        Assert.True(events.Count >= 4);
+        Assert.True(events.Count >= 4, "At least 4 events should have been captured.");
 
         // Check that all events have the correct message.
         Assert.All(events, e =>
@@ -298,9 +308,72 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
             consumerBuilder.Config.GroupId = "aspire-consumer-group";
             consumerBuilder.Config.AutoOffsetReset = AutoOffsetReset.Earliest;
         });
+        
+        // Add AdminClient for checking consumer group status
+        hostBuilder.Services.AddSingleton(serviceProvider =>
+        {
+            var connectionString = hostBuilder.Configuration[$"ConnectionStrings:{kafkaResource.Name}"];
+            var adminConfig = new AdminClientConfig { BootstrapServers = connectionString };
+            return new AdminClientBuilder(adminConfig).Build();
+        });
+        
         var host = hostBuilder.Build();
 
         await host.StartAsync(TestContext.Current.CancellationToken);
         return host;
+    }
+    
+    /// <summary>
+    /// Waits for the Microcks Async Minion consumer to connect Kafka.
+    /// </summary>
+    /// <remarks>
+    /// Waits up to 5 seconds (10 attempts × 500ms) for the consumer to connect.
+    /// The minion creates consumer groups with pattern {testResultId}-{timestamp} and 
+    /// uses client ID "microcks-async-minion-test".
+    /// </remarks>
+    private async Task WaitForMinionConsumerAsync(IAdminClient adminClient, CancellationToken cancellationToken)
+    {
+        // Configuration for consumer detection
+        const int MaxWaitAttempts = 10;  // Maximum number of polling attempts (10 × 500ms = 5 seconds total)
+        const int DelayBetweenAttemptsMs = 500;  // Delay between polling attempts
+        TimeSpan AdminApiTimeout = TimeSpan.FromMilliseconds(500);  // Timeout for Admin API calls
+        const string MinionClientId = "microcks-async-minion-test";  // Client ID used by Microcks Async Minion
+        
+        TestContext.Current.TestOutputHelper
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Waiting for Microcks Async Minion to connect...");
+        
+        for (int attempt = 0; attempt < MaxWaitAttempts; attempt++)
+        {
+            try
+            {
+                // List all consumer groups
+                var groups = adminClient.ListGroups(AdminApiTimeout);
+                
+                // Look for consumer groups with members that have the Microcks minion client ID
+                // The minion creates groups with pattern {testResultId}-{timestamp}
+                var minionGroups = groups.Where(g => 
+                    g.Members != null && g.Members.Any(m => m.ClientId == MinionClientId)).ToList();
+                
+                if (minionGroups.Any())
+                {
+                    foreach (var group in minionGroups)
+                    {
+                        TestContext.Current.TestOutputHelper
+                            .WriteLine($"{DateTime.Now.ToLocalTime()} Found Microcks consumer group '{group.Group}' with client ID '{MinionClientId}'.");
+                    }
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                TestContext.Current.TestOutputHelper
+                    .WriteLine($"{DateTime.Now.ToLocalTime()} Attempt {attempt + 1}/{MaxWaitAttempts} - Waiting for consumer: {ex.Message}");
+            }
+            
+            await Task.Delay(DelayBetweenAttemptsMs, cancellationToken);
+        }
+        
+        TestContext.Current.TestOutputHelper
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Warning: No Microcks consumer with client ID '{MinionClientId}' detected after {MaxWaitAttempts} attempts. Proceeding anyway...");
     }
 }

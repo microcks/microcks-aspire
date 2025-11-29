@@ -62,6 +62,7 @@ internal static class ServiceCollectionExtensions
             logger.LogInformation("Configuring Microcks HttpClient for endpoint URL: {EndpointUrl}", endpointUrl);
 
             httpClient.BaseAddress = new Uri(endpointUrl);
+
             // Authentication
             // TODO: Add support for authentication
             // httpClient.DefaultRequestHeaders.Authorization = ...
