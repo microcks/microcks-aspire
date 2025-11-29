@@ -50,10 +50,10 @@ public sealed class MicrocksKafkaFixture : IAsyncLifetime
         Builder.Services.AddLogging(logging =>
         {
             //logging.ClearProviders();
-            logging.AddSimpleConsole(configure =>
-            {
-                configure.SingleLine = true;
-            });
+            //logging.AddConsole();
+
+            logging.SetMinimumLevel(LogLevel.Trace);
+            logging.AddFilter("Aspire.", LogLevel.Debug);
         });
 
         // Add Kafka server
