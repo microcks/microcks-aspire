@@ -17,8 +17,8 @@ updates:
     open-pull-requests-limit: 3
     rebase-strategy: disabled
     groups:
-      all-dependencies:
-        patterns: ['*']
+      aspire-dependencies:
+        patterns: ['Aspire*']
 
 # Github Actions updates
   - package-ecosystem: github-actions
