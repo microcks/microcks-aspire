@@ -340,9 +340,9 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
     private async Task WaitForMinionConsumerAsync(IAdminClient adminClient, string topic, CancellationToken cancellationToken)
     {
         // Configuration for consumer detection
-        const int MaxWaitAttempts = 10;  // Maximum number of polling attempts (5 seconds total)
+        const int MaxWaitAttempts = 10;  // Maximum number of polling attempts (10 × 500ms = 5 seconds total)
         const int DelayBetweenAttemptsMs = 500;  // Delay between polling attempts
-        const int AdminApiTimeoutSeconds = 2;  // Timeout for Admin API calls
+        const int AdminApiTimeoutSeconds = 3;  // Timeout for Admin API calls
         const string MinionClientId = "microcks-async-minion-test";  // Client ID used by Microcks Async Minion
         
         TestContext.Current.TestOutputHelper
@@ -358,7 +358,7 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
                 // Look for consumer groups with members that have the Microcks minion client ID
                 // The minion creates groups with pattern {testResultId}-{timestamp}
                 var minionGroups = groups.Where(g => 
-                    g.Members.Any(m => m.ClientId == MinionClientId)).ToList();
+                    g.Members != null && g.Members.Any(m => m.ClientId == MinionClientId)).ToList();
                 
                 if (minionGroups.Any())
                 {
