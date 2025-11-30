@@ -213,7 +213,9 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         // Start the test (this will fail initially as there are no messages being sent)
         // but it validates that the test setup and endpoint format are correct
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
-
+        TestContext.Current.TestOutputHelper
+                .WriteLine($"{DateTime.Now.ToLocalTime()} Test started...");
+            
         // Wait a bit to let the test initialize
         await Task.Delay(750, TestContext.Current.CancellationToken);
 

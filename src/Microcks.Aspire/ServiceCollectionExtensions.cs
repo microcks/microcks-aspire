@@ -62,6 +62,15 @@ internal static class ServiceCollectionExtensions
             logger.LogInformation("Configuring Microcks HttpClient for endpoint URL: {EndpointUrl}", endpointUrl);
 
             httpClient.BaseAddress = new Uri(endpointUrl);
+
+            // No caching
+            httpClient.DefaultRequestHeaders.CacheControl = new System.Net.Http.Headers.CacheControlHeaderValue
+            {
+                NoCache = true,
+                NoStore = true,
+                MustRevalidate = true
+            };
+
             // Authentication
             // TODO: Add support for authentication
             // httpClient.DefaultRequestHeaders.Authorization = ...
