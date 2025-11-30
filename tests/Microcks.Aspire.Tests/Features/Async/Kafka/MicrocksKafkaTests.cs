@@ -356,7 +356,8 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
                 // Look for consumer groups that might be the Microcks minion
                 // Microcks typically creates consumer groups with patterns like "microcks-async-minion-*"
                 var minionGroups = groups.Where(g => 
-                    g.Group.Contains("microcks", StringComparison.OrdinalIgnoreCase) && 
+                    (g.Group.StartsWith("microcks", StringComparison.OrdinalIgnoreCase) ||
+                     g.Group.Contains("async-minion", StringComparison.OrdinalIgnoreCase)) &&
                     g.Members.Count > 0).ToList();
                 
                 if (minionGroups.Any())
@@ -366,8 +367,6 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
                         TestContext.Current.TestOutputHelper
                             .WriteLine($"{DateTime.Now.ToLocalTime()} Found Microcks consumer group '{group.Group}' with {group.Members.Count} member(s).");
                     }
-                    // Additional delay to ensure consumer is fully stabilized
-                    await Task.Delay(DelayBetweenAttemptsMs, cancellationToken);
                     return;
                 }
             }
