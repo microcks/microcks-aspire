@@ -330,18 +330,20 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
     
     /// <summary>
     /// Waits for a Kafka consumer (the Microcks Async Minion) to connect to a specific topic 
-    /// by checking with the Kafka Admin API until a consumer group appears with active members.
+    /// by checking with the Kafka Admin API until a consumer with the minion's client ID appears.
     /// </summary>
     /// <remarks>
-    /// Waits up to 15 seconds (30 attempts × 500ms) for the consumer to connect.
-    /// This timeout is reasonable for Docker container startup and consumer initialization.
+    /// Waits up to 5 seconds (10 attempts × 500ms) for the consumer to connect.
+    /// The minion creates consumer groups with pattern {testResultId}-{timestamp} and 
+    /// uses client ID "microcks-async-minion-test".
     /// </remarks>
     private async Task WaitForMinionConsumerAsync(IAdminClient adminClient, string topic, CancellationToken cancellationToken)
     {
         // Configuration for consumer detection
-        const int MaxWaitAttempts = 30;  // Maximum number of polling attempts
-        const int DelayBetweenAttemptsMs = 500;  // Delay between polling attempts (15 seconds total)
-        const int AdminApiTimeoutSeconds = 5;  // Timeout for Admin API calls
+        const int MaxWaitAttempts = 10;  // Maximum number of polling attempts (5 seconds total)
+        const int DelayBetweenAttemptsMs = 500;  // Delay between polling attempts
+        const int AdminApiTimeoutSeconds = 2;  // Timeout for Admin API calls
+        const string MinionClientId = "microcks-async-minion-test";  // Client ID used by Microcks Async Minion
         
         TestContext.Current.TestOutputHelper
             .WriteLine($"{DateTime.Now.ToLocalTime()} Waiting for Microcks Async Minion consumer to connect to topic '{topic}'...");
@@ -353,19 +355,17 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
                 // List all consumer groups
                 var groups = adminClient.ListGroups(TimeSpan.FromSeconds(AdminApiTimeoutSeconds));
                 
-                // Look for consumer groups that might be the Microcks minion
-                // Microcks typically creates consumer groups with patterns like "microcks-async-minion-*"
+                // Look for consumer groups with members that have the Microcks minion client ID
+                // The minion creates groups with pattern {testResultId}-{timestamp}
                 var minionGroups = groups.Where(g => 
-                    (g.Group.StartsWith("microcks", StringComparison.OrdinalIgnoreCase) ||
-                     g.Group.Contains("async-minion", StringComparison.OrdinalIgnoreCase)) &&
-                    g.Members.Count > 0).ToList();
+                    g.Members.Any(m => m.ClientId == MinionClientId)).ToList();
                 
                 if (minionGroups.Any())
                 {
                     foreach (var group in minionGroups)
                     {
                         TestContext.Current.TestOutputHelper
-                            .WriteLine($"{DateTime.Now.ToLocalTime()} Found Microcks consumer group '{group.Group}' with {group.Members.Count} member(s).");
+                            .WriteLine($"{DateTime.Now.ToLocalTime()} Found Microcks consumer group '{group.Group}' with client ID '{MinionClientId}'.");
                     }
                     return;
                 }
@@ -380,6 +380,6 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         }
         
         TestContext.Current.TestOutputHelper
-            .WriteLine($"{DateTime.Now.ToLocalTime()} Warning: No Microcks consumer groups detected after {MaxWaitAttempts} attempts. Proceeding anyway...");
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Warning: No Microcks consumer with client ID '{MinionClientId}' detected after {MaxWaitAttempts} attempts. Proceeding anyway...");
     }
 }
