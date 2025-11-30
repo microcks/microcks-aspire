@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
 using Microcks.Aspire.Async;
@@ -134,15 +135,19 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
 
-        // Get Kafka producer from host
+        // Get Kafka producer and admin client from host
         var producer = host.Services.GetRequiredService<IProducer<string, string>>();
+        var adminClient = host.Services.GetRequiredService<IAdminClient>();
 
         // Start the test (this will fail initially as there are no messages being sent)
         // but it validates that the test setup and endpoint format are correct
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
+        
+        TestContext.Current.TestOutputHelper
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Test started...");
 
-        // Wait a bit to let the test initialize
-        await Task.Delay(750, TestContext.Current.CancellationToken);
+        // Wait for the Microcks Async Minion consumer to connect to the Kafka topic
+        await WaitForMinionConsumerAsync(adminClient, "pastry-orders", TestContext.Current.CancellationToken);
 
         var pipeline = new ResiliencePipelineBuilder()
             .AddRetry(new() { MaxRetryAttempts = 10, Delay = TimeSpan.FromSeconds(1), ShouldHandle = new PredicateBuilder().Handle<ProduceException<string, string>>() })
@@ -207,17 +212,19 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
 
-        // Get Kafka producer from host
+        // Get Kafka producer and admin client from host
         var producer = host.Services.GetRequiredService<IProducer<string, string>>();
+        var adminClient = host.Services.GetRequiredService<IAdminClient>();
 
         // Start the test (this will fail initially as there are no messages being sent)
         // but it validates that the test setup and endpoint format are correct
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
+        
         TestContext.Current.TestOutputHelper
-                .WriteLine($"{DateTime.Now.ToLocalTime()} Test started...");
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Test started...");
             
-        // Wait a bit to let the test initialize
-        await Task.Delay(750, TestContext.Current.CancellationToken);
+        // Wait for the Microcks Async Minion consumer to connect to the Kafka topic
+        await WaitForMinionConsumerAsync(adminClient, "pastry-orders", TestContext.Current.CancellationToken);
 
         // Retry policy for producing messages
         var pipeline = new ResiliencePipelineBuilder()
@@ -305,9 +312,77 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
             consumerBuilder.Config.GroupId = "aspire-consumer-group";
             consumerBuilder.Config.AutoOffsetReset = AutoOffsetReset.Earliest;
         });
+        
+        // Add AdminClient for checking consumer group status
+        hostBuilder.Services.AddSingleton<IAdminClient>(serviceProvider =>
+        {
+            var connectionString = hostBuilder.Configuration[$"ConnectionStrings:{kafkaResource.Name}"];
+            var adminConfig = new AdminClientConfig { BootstrapServers = connectionString };
+            return new AdminClientBuilder(adminConfig).Build();
+        });
+        
         var host = hostBuilder.Build();
 
         await host.StartAsync(TestContext.Current.CancellationToken);
         return host;
+    }
+    
+    /// <summary>
+    /// Waits for a Kafka consumer (the Microcks Async Minion) to connect to a specific topic 
+    /// by checking with the Kafka Admin API until a consumer group appears with active members.
+    /// </summary>
+    private async Task WaitForMinionConsumerAsync(IAdminClient adminClient, string topic, CancellationToken cancellationToken)
+    {
+        const int maxAttempts = 30;
+        const int delayMs = 500;
+        
+        TestContext.Current.TestOutputHelper
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Waiting for Microcks Async Minion consumer to connect to topic '{topic}'...");
+        
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                // List all consumer groups
+                var groups = adminClient.ListGroups(TimeSpan.FromSeconds(5));
+                
+                // Look for consumer groups that might be the Microcks minion
+                // Microcks typically creates consumer groups with patterns like "microcks-async-minion-*"
+                var minionGroups = groups.Where(g => 
+                    g.Group.Contains("microcks", StringComparison.OrdinalIgnoreCase) && 
+                    g.Members.Count > 0).ToList();
+                
+                if (minionGroups.Any())
+                {
+                    foreach (var group in minionGroups)
+                    {
+                        TestContext.Current.TestOutputHelper
+                            .WriteLine($"{DateTime.Now.ToLocalTime()} Found consumer group '{group.Group}' with {group.Members.Count} member(s).");
+                    }
+                    return;
+                }
+                
+                // If no microcks-specific group found, check if any consumer group exists for the topic
+                // by checking all groups and their subscriptions
+                if (groups.Any(g => g.Members.Count > 0))
+                {
+                    TestContext.Current.TestOutputHelper
+                        .WriteLine($"{DateTime.Now.ToLocalTime()} Found {groups.Count(g => g.Members.Count > 0)} active consumer group(s).");
+                    // Give it a bit more time to ensure it's fully connected
+                    await Task.Delay(500, cancellationToken);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                TestContext.Current.TestOutputHelper
+                    .WriteLine($"{DateTime.Now.ToLocalTime()} Attempt {attempt + 1}/{maxAttempts} - Waiting for consumer: {ex.Message}");
+            }
+            
+            await Task.Delay(delayMs, cancellationToken);
+        }
+        
+        TestContext.Current.TestOutputHelper
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Warning: No active consumer groups detected after {maxAttempts} attempts. Proceeding anyway...");
     }
 }
