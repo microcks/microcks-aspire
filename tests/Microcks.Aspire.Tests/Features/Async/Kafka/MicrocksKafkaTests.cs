@@ -25,6 +25,7 @@ using Microcks.Aspire.Async;
 using Microcks.Aspire.Clients.Model;
 using Microcks.Aspire.Tests.Fixtures.Async.Kafka;
 using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
@@ -331,20 +332,26 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
     /// Waits for a Kafka consumer (the Microcks Async Minion) to connect to a specific topic 
     /// by checking with the Kafka Admin API until a consumer group appears with active members.
     /// </summary>
+    /// <remarks>
+    /// Waits up to 15 seconds (30 attempts × 500ms) for the consumer to connect.
+    /// This timeout is reasonable for Docker container startup and consumer initialization.
+    /// </remarks>
     private async Task WaitForMinionConsumerAsync(IAdminClient adminClient, string topic, CancellationToken cancellationToken)
     {
-        const int maxAttempts = 30;
-        const int delayMs = 500;
+        // Configuration for consumer detection
+        const int MaxWaitAttempts = 30;  // Maximum number of polling attempts
+        const int DelayBetweenAttemptsMs = 500;  // Delay between polling attempts (15 seconds total)
+        const int AdminApiTimeoutSeconds = 5;  // Timeout for Admin API calls
         
         TestContext.Current.TestOutputHelper
             .WriteLine($"{DateTime.Now.ToLocalTime()} Waiting for Microcks Async Minion consumer to connect to topic '{topic}'...");
         
-        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        for (int attempt = 0; attempt < MaxWaitAttempts; attempt++)
         {
             try
             {
                 // List all consumer groups
-                var groups = adminClient.ListGroups(TimeSpan.FromSeconds(5));
+                var groups = adminClient.ListGroups(TimeSpan.FromSeconds(AdminApiTimeoutSeconds));
                 
                 // Look for consumer groups that might be the Microcks minion
                 // Microcks typically creates consumer groups with patterns like "microcks-async-minion-*"
@@ -357,32 +364,23 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
                     foreach (var group in minionGroups)
                     {
                         TestContext.Current.TestOutputHelper
-                            .WriteLine($"{DateTime.Now.ToLocalTime()} Found consumer group '{group.Group}' with {group.Members.Count} member(s).");
+                            .WriteLine($"{DateTime.Now.ToLocalTime()} Found Microcks consumer group '{group.Group}' with {group.Members.Count} member(s).");
                     }
-                    return;
-                }
-                
-                // If no microcks-specific group found, check if any consumer group exists for the topic
-                // by checking all groups and their subscriptions
-                if (groups.Any(g => g.Members.Count > 0))
-                {
-                    TestContext.Current.TestOutputHelper
-                        .WriteLine($"{DateTime.Now.ToLocalTime()} Found {groups.Count(g => g.Members.Count > 0)} active consumer group(s).");
-                    // Give it a bit more time to ensure it's fully connected
-                    await Task.Delay(500, cancellationToken);
+                    // Additional delay to ensure consumer is fully stabilized
+                    await Task.Delay(DelayBetweenAttemptsMs, cancellationToken);
                     return;
                 }
             }
             catch (Exception ex)
             {
                 TestContext.Current.TestOutputHelper
-                    .WriteLine($"{DateTime.Now.ToLocalTime()} Attempt {attempt + 1}/{maxAttempts} - Waiting for consumer: {ex.Message}");
+                    .WriteLine($"{DateTime.Now.ToLocalTime()} Attempt {attempt + 1}/{MaxWaitAttempts} - Waiting for consumer: {ex.Message}");
             }
             
-            await Task.Delay(delayMs, cancellationToken);
+            await Task.Delay(DelayBetweenAttemptsMs, cancellationToken);
         }
         
         TestContext.Current.TestOutputHelper
-            .WriteLine($"{DateTime.Now.ToLocalTime()} Warning: No active consumer groups detected after {maxAttempts} attempts. Proceeding anyway...");
+            .WriteLine($"{DateTime.Now.ToLocalTime()} Warning: No Microcks consumer groups detected after {MaxWaitAttempts} attempts. Proceeding anyway...");
     }
 }
