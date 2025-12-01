@@ -18,12 +18,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting.ApplicationModel;
 using Microcks.Aspire.Async;
 using Microcks.Aspire.Clients.Model;
 using Microcks.Aspire.Tests.Fixtures.Async.Kafka;
 using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
@@ -301,6 +303,49 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         var host = hostBuilder.Build();
 
         await host.StartAsync(TestContext.Current.CancellationToken);
+
+        await CreateRequiredTopicsAsync(TestContext.Current.CancellationToken);
+
         return host;
+    }
+
+    /// <summary>
+    /// Create required Kafka topics for tests.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private async Task CreateRequiredTopicsAsync(CancellationToken cancellationToken)
+    {
+        var kafkaResource = _fixture.KafkaResource;
+        var kafkaConnectionStringExpression = kafkaResource.ConnectionStringExpression;
+        var kafkaConnectionString = await kafkaConnectionStringExpression.GetValueAsync(cancellationToken);
+
+        var config = new AdminClientConfig
+        {
+            BootstrapServers = kafkaConnectionString
+        };
+
+        using var adminClient = new AdminClientBuilder(config).Build();
+
+        var topics = new List<string> { "pastry-orders" };
+
+        try
+        {
+            await adminClient.CreateTopicsAsync(
+                topics.Select(topic => new TopicSpecification
+                {
+                    Name = topic,
+                    NumPartitions = 1,
+                    ReplicationFactor = 1
+                }));
+        }
+        catch (CreateTopicsException ex)
+        {
+            // Ignore if topic already exists
+            if (ex.Results.Any(r => r.Error.Code != Confluent.Kafka.ErrorCode.TopicAlreadyExists))
+            {
+                TestContext.Current.TestOutputHelper.WriteLine($"An error occured creating topics: {ex}");
+            }
+        }
     }
 }
