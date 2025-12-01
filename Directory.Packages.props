@@ -3,7 +3,6 @@
     <!-- Enable central package management, https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
-
   <ItemGroup Label="TestPackages">
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Xunit.V3" Version="3.2.0" />
@@ -12,20 +11,21 @@
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="MartinCostello.Logging.XUnit.v3" Version="0.7.0" />
     <PackageVersion Include="xunit.v3.extensibility.core" Version="3.2.0" />
+    <PackageVersion Include="xunit.v3.runner.console" Version="3.2.1">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageVersion>
   </ItemGroup>
-
-  <ItemGroup Label="AspirePackages">  
+  <ItemGroup Label="AspirePackages">
     <PackageVersion Include="Aspire.AppHost.Sdk" Version="13.0.0" />
     <PackageVersion Include="Aspire.Hosting" Version="13.0.0" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.0.0" />
     <PackageVersion Include="Aspire.Hosting.Kafka" Version="13.0.0" />
     <PackageVersion Include="Aspire.Confluent.Kafka" Version="13.0.0" />
   </ItemGroup>
-
   <ItemGroup Label="MainPackages">
     <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
   </ItemGroup>
-
   <ItemGroup Label="SourceLinkPackages">
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
   </ItemGroup>
