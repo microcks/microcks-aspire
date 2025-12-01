@@ -45,8 +45,21 @@ public static class DistributedApplicationTestingBuilderExtensions
     /// <returns>The configured IDistributedApplicationTestingBuilder instance.</returns>
     public static IDistributedApplicationTestingBuilder WithTestAndResourceLogging(this IDistributedApplicationTestingBuilder builder, ITestOutputHelper testOutputHelper)
     {
-        builder.Services.AddLogging(builder => builder.AddXUnit());
-        builder.Services.AddLogging(builder => builder.AddFilter("Aspire.Hosting", LogLevel.Trace));
+
+        builder.Services.AddLogging(builder =>
+        {
+            builder.ClearProviders();
+
+            // Add xUnit logging with custom format
+            builder.AddXUnit(testOutputHelper, options =>
+            {
+                options.TimestampFormat = "HH:mm:ss.fff ";
+                options.IncludeScopes = false;
+            });
+
+            builder.AddFilter("Aspire.Hosting", LogLevel.Trace);
+        });
+
         return builder;
     }
 

@@ -39,10 +39,21 @@ namespace Microcks.Aspire.Tests.Features.Async.Kafka;
 /// Tests for the Microcks Async Minion with Kafka resource builder and runtime behavior.
 /// Uses a shared Microcks instance with Async Minion and Kafka provided by <see cref="MicrocksKafkaFixture"/>.
 /// </summary>
-[Collection(MicrocksKafkaCollection.CollectionName)]
-public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
+//[Collection(MicrocksKafkaCollection.CollectionName)]
+public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, MicrocksKafkaFixture fixture)
+    : IClassFixture<MicrocksKafkaFixture>, IAsyncLifetime
 {
     private readonly MicrocksKafkaFixture _fixture = fixture;
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+
+    /// <summary>
+    /// Initialize the fixture before any test runs.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous initialization operation.</returns>
+    public async ValueTask InitializeAsync()
+    {
+        await this._fixture.InitializeAsync(_testOutputHelper);
+    }
 
     /// <summary>
     /// When the application is started, then the MicrocksAsyncMinionResource and Kafka are available.
@@ -151,15 +162,18 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
             .Build();
 
         // Act
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Starting to send 5 messages...");
         for (var i = 0; i < 5; i++)
         {
             await pipeline.ExecuteAsync(async cancellationToken =>
             {
+                _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Sending message {i + 1}/5");
                 var deliveryResult = await producer.ProduceAsync("pastry-orders", new Message<string, string>
                 {
                     Key = Guid.NewGuid().ToString(),
                     Value = message
                 }, cancellationToken);
+                _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Message {i + 1} delivered to {deliveryResult.TopicPartitionOffset}");
             }, TestContext.Current.CancellationToken);
 
             producer.Flush(TestContext.Current.CancellationToken);
@@ -167,7 +181,9 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         }
 
         // Wait for a test result
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] All messages sent, waiting for test result...");
         var testResult = await taskTestResult;
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Test result received");
 
         // You may inspect complete response object with following:
         var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
@@ -241,7 +257,9 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         producer.Flush(TestContext.Current.CancellationToken);
 
         // Wait for a test result
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] All messages sent, waiting for test result...");
         var testResult = await taskTestResult;
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Test result received");
 
         // You may inspect complete response object with following:
         var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
@@ -302,9 +320,13 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         });
         var host = hostBuilder.Build();
 
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Starting Kafka client host...");
         await host.StartAsync(TestContext.Current.CancellationToken);
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Kafka client host started");
 
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating required Kafka topics...");
         await CreateRequiredTopicsAsync(TestContext.Current.CancellationToken);
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Kafka topics creation completed");
 
         return host;
     }
@@ -328,6 +350,7 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         using var adminClient = new AdminClientBuilder(config).Build();
 
         var topics = new List<string> { "pastry-orders" };
+        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Attempting to create topics: {string.Join(", ", topics)}");
 
         try
         {
@@ -338,14 +361,28 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
                     NumPartitions = 1,
                     ReplicationFactor = 1
                 }));
+            _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Topics created successfully");
         }
         catch (CreateTopicsException ex)
         {
             // Ignore if topic already exists
             if (ex.Results.Any(r => r.Error.Code != Confluent.Kafka.ErrorCode.TopicAlreadyExists))
             {
-                TestContext.Current.TestOutputHelper.WriteLine($"An error occured creating topics: {ex}");
+                _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error creating topics: {ex}");
+            }
+            else
+            {
+                _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Topics already exist - skipping creation");
             }
         }
+    }
+
+    /// <summary>
+    /// Dispose resources used by the fixture.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous dispose operation.</returns>
+    public async ValueTask DisposeAsync()
+    {
+        await this._fixture.DisposeAsync();
     }
 }
