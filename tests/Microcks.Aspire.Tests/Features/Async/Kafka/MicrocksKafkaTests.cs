@@ -234,9 +234,9 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
                 }, cancellationToken);
             }, TestContext.Current.CancellationToken);
 
-            producer.Flush(TestContext.Current.CancellationToken);
             await Task.Delay(500, TestContext.Current.CancellationToken);
         }
+        producer.Flush(TestContext.Current.CancellationToken);
 
         // Wait for a test result
         var testResult = await taskTestResult;
