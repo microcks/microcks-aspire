@@ -22,15 +22,12 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting;
-
 using Microcks.Aspire.Async;
 using Microcks.Aspire.Clients.Model;
 using Microcks.Aspire.Tests.Fixtures.Async;
 using Microsoft.Extensions.DependencyInjection;
-
 using Xunit;
 
 namespace Microcks.Aspire.Tests.Features.Async;
@@ -39,10 +36,20 @@ namespace Microcks.Aspire.Tests.Features.Async;
 /// Tests for the Microcks Async Minion resource builder and runtime behavior.
 /// Uses a shared Microcks instance with Async Minion provided by <see cref="MicrocksAsyncFixture"/>.
 /// </summary>
-[Collection(MicrocksAsyncCollection.CollectionName)]
-public sealed class MicrocksAsyncTests(MicrocksAsyncFixture fixture)
+public sealed class MicrocksAsyncTests(ITestOutputHelper testOutputHelper, MicrocksAsyncFixture fixture)
+    : IClassFixture<MicrocksAsyncFixture>, IAsyncLifetime
 {
     private MicrocksAsyncFixture _fixture = fixture;
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+
+    /// <summary>
+    /// Initialize the fixture before any test runs.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous initialization operation.</returns>
+    public async ValueTask InitializeAsync()
+    {
+        await this._fixture.InitializeAsync(_testOutputHelper);
+    }
 
     /// <summary>
     /// When the application is started, then the MicrocksAsyncMinionResource is available.
@@ -100,7 +107,6 @@ public sealed class MicrocksAsyncTests(MicrocksAsyncFixture fixture)
 
         Assert.Equal(expectedMessage, message);
     }
-
 
     /// <summary>
     /// When a bad WebSocket message is sent to the Microcks Async Minion, then the correct contract status is returned.
@@ -180,5 +186,14 @@ public sealed class MicrocksAsyncTests(MicrocksAsyncFixture fixture)
 
         Assert.NotEmpty(testResult.TestCaseResults.First().TestStepResults);
         Assert.True(string.IsNullOrEmpty(testResult.TestCaseResults.First().TestStepResults.First().Message));
+    }
+
+    /// <summary>
+    /// Dispose resources used by the fixture.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous dispose operation.</returns>
+    public async ValueTask DisposeAsync()
+    {
+        await this._fixture.DisposeAsync();
     }
 }

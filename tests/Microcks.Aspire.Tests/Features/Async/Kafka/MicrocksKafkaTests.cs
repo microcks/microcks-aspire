@@ -18,18 +18,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
+using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using Microcks.Aspire.Async;
 using Microcks.Aspire.Clients.Model;
 using Microcks.Aspire.Tests.Fixtures.Async.Kafka;
-using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Xunit;
-using Aspire.Hosting;
-using System.Text.Json;
 
 namespace Microcks.Aspire.Tests.Features.Async.Kafka;
 
@@ -37,10 +40,24 @@ namespace Microcks.Aspire.Tests.Features.Async.Kafka;
 /// Tests for the Microcks Async Minion with Kafka resource builder and runtime behavior.
 /// Uses a shared Microcks instance with Async Minion and Kafka provided by <see cref="MicrocksKafkaFixture"/>.
 /// </summary>
-[Collection(MicrocksKafkaCollection.CollectionName)]
-public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
+/// <param name="testOutputHelper">The test output helper for logging.</param>
+/// <param name="fixture">The Microcks Kafka fixture.</param>
+public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, MicrocksKafkaFixture fixture)
+    : IClassFixture<MicrocksKafkaFixture>, IAsyncLifetime
 {
     private readonly MicrocksKafkaFixture _fixture = fixture;
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+    private ILogger<MicrocksKafkaTests> _logger = default!;
+
+    /// <summary>
+    /// Initialize the fixture before any test runs.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous initialization operation.</returns>
+    public async ValueTask InitializeAsync()
+    {
+        await this._fixture.InitializeAsync(_testOutputHelper);
+        _logger = _fixture.App.Services.GetRequiredService<ILogger<MicrocksKafkaTests>>();
+    }
 
     /// <summary>
     /// When the application is started, then the MicrocksAsyncMinionResource and Kafka are available.
@@ -129,7 +146,7 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
             ServiceId = "Pastry orders API:0.1.0",
             RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
             TestEndpoint = "kafka://kafka:9093/pastry-orders", // 9093 is the internal Docker network port
-            Timeout = TimeSpan.FromSeconds(5)
+            Timeout = TimeSpan.FromSeconds(3)
         };
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
@@ -149,15 +166,18 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
             .Build();
 
         // Act
+        _logger.LogInformation("Starting to send 5 messages...");
         for (var i = 0; i < 5; i++)
         {
             await pipeline.ExecuteAsync(async cancellationToken =>
             {
+                _logger.LogInformation("Sending message {Current}/{Total}", i + 1, 5);
                 var deliveryResult = await producer.ProduceAsync("pastry-orders", new Message<string, string>
                 {
                     Key = Guid.NewGuid().ToString(),
                     Value = message
                 }, cancellationToken);
+                _logger.LogInformation("Message {Index} delivered to {Destination}", i + 1, deliveryResult.TopicPartitionOffset);
             }, TestContext.Current.CancellationToken);
 
             producer.Flush(TestContext.Current.CancellationToken);
@@ -165,11 +185,13 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         }
 
         // Wait for a test result
+        _logger.LogInformation("All messages sent, waiting for test result...");
         var testResult = await taskTestResult;
+        _logger.LogInformation("Test result received");
 
         // You may inspect complete response object with following:
         var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
-        TestContext.Current.TestOutputHelper.WriteLine(json);
+        _logger.LogInformation("Test result payload:{NewLine}{Payload}", Environment.NewLine, json);
 
         // Assert
         Assert.False(testResult.InProgress);
@@ -202,7 +224,7 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
             ServiceId = "Pastry orders API:0.1.0",
             RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
             TestEndpoint = "kafka://kafka:9093/pastry-orders", // 9093 is the internal Docker network port
-            Timeout = TimeSpan.FromMilliseconds(40000)
+            Timeout = TimeSpan.FromSeconds(4)
         };
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
@@ -214,8 +236,11 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         // but it validates that the test setup and endpoint format are correct
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
 
+        _logger.LogInformation("Test started, waiting a bit to let it initialize...");
         // Wait a bit to let the test initialize
         await Task.Delay(750, TestContext.Current.CancellationToken);
+
+        _logger.LogInformation("Starting to send 5 bad messages...");
 
         // Retry policy for producing messages
         var pipeline = new ResiliencePipelineBuilder()
@@ -227,23 +252,28 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         {
             await pipeline.ExecuteAsync(async cancellationToken =>
             {
+                _logger.LogInformation("Sending bad message {Current}/{Total}", i + 1, 5);
                 var deliveryResult = await producer.ProduceAsync("pastry-orders", new Message<string, string>
                 {
                     Key = Guid.NewGuid().ToString(),
                     Value = message
                 }, cancellationToken);
+                _logger.LogInformation("Bad message {Index} delivered to {Destination}", i + 1, deliveryResult.TopicPartitionOffset);
             }, TestContext.Current.CancellationToken);
 
-            producer.Flush(TestContext.Current.CancellationToken);
+            _logger.LogInformation("Waiting 500ms between messages...");
             await Task.Delay(500, TestContext.Current.CancellationToken);
         }
+        producer.Flush(TestContext.Current.CancellationToken);
 
         // Wait for a test result
+        _logger.LogInformation("All messages sent, waiting for test result...");
         var testResult = await taskTestResult;
+        _logger.LogInformation("Test result received");
 
         // You may inspect complete response object with following:
         var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
-        TestContext.Current.TestOutputHelper.WriteLine(json);
+        _logger.LogInformation("Test result payload:{NewLine}{Payload}", Environment.NewLine, json);
 
         // Assert
         Assert.False(testResult.InProgress, "Test should have completed");
@@ -300,7 +330,69 @@ public sealed class MicrocksKafkaTests(MicrocksKafkaFixture fixture)
         });
         var host = hostBuilder.Build();
 
+        _logger.LogInformation("Starting Kafka client host...");
         await host.StartAsync(TestContext.Current.CancellationToken);
+        _logger.LogInformation("Kafka client host started");
+
+        _logger.LogInformation("Creating required Kafka topics...");
+        await CreateRequiredTopicsAsync(TestContext.Current.CancellationToken);
+        _logger.LogInformation("Kafka topics creation completed");
+
         return host;
+    }
+
+    /// <summary>
+    /// Create required Kafka topics for tests.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private async Task CreateRequiredTopicsAsync(CancellationToken cancellationToken)
+    {
+        var kafkaResource = _fixture.KafkaResource;
+        var kafkaConnectionStringExpression = kafkaResource.ConnectionStringExpression;
+        var kafkaConnectionString = await kafkaConnectionStringExpression.GetValueAsync(cancellationToken);
+
+        var config = new AdminClientConfig
+        {
+            BootstrapServers = kafkaConnectionString
+        };
+
+        using var adminClient = new AdminClientBuilder(config).Build();
+
+        var topics = new List<string> { "pastry-orders" };
+        _logger.LogInformation("Attempting to create topics: {Topics}", string.Join(", ", topics));
+
+        try
+        {
+            await adminClient.CreateTopicsAsync(
+                topics.Select(topic => new TopicSpecification
+                {
+                    Name = topic,
+                    NumPartitions = 1,
+                    ReplicationFactor = 1
+                }));
+            _logger.LogInformation("Topics created successfully");
+        }
+        catch (CreateTopicsException ex)
+        {
+            // Ignore if topic already exists
+            if (ex.Results.Any(r => r.Error.Code != Confluent.Kafka.ErrorCode.TopicAlreadyExists))
+            {
+                _logger.LogError(ex, "Error creating topics");
+            }
+            else
+            {
+                _logger.LogInformation("Topics already exist - skipping creation");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Dispose resources used by the fixture.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous dispose operation.</returns>
+    public async ValueTask DisposeAsync()
+    {
+        await this._fixture.DisposeAsync();
     }
 }

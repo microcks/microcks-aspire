@@ -82,6 +82,7 @@ jobs:
       run: |
         dotnet test -f net10.0 --no-build `
         --configuration Release `
+        --logger "console;verbosity=detailed" `
         --logger trx `
         --collect:"XPlat Code Coverage" `
         --results-directory testresults
@@ -92,7 +93,7 @@ jobs:
       if: ${{ inputs.use-sonarcloud == true }}
       run: |
         dotnet tool install --global dotnet-coverage
-        dotnet-coverage collect --output-format xml --output "coverage.xml" "dotnet test -f net10.0 --no-build --configuration Release --logger trx --results-directory testresults"
+        dotnet-coverage collect --output-format xml --output "coverage.xml" "dotnet test --no-build -f net10.0 --configuration Release --logger console;verbosity=detailed --logger trx --results-directory testresults"
       shell: pwsh
 
     - name: Stop SonarQube Analysis

@@ -31,7 +31,7 @@ namespace Microcks.Aspire.Tests.Fixtures.Mock;
 /// configures Microcks with the artifacts used by tests and starts the
 /// distributed application once for the collection lifetime.
 /// </summary>
-public sealed class MicrocksMockingFixture : IAsyncLifetime, IDisposable
+public sealed class MicrocksMockingFixture : IAsyncDisposable
 {
     /// <summary>
     /// Gets the test distributed application builder.
@@ -51,11 +51,15 @@ public sealed class MicrocksMockingFixture : IAsyncLifetime, IDisposable
     /// <summary>
     /// Initializes the shared distributed application and starts Microcks.
     /// </summary>
-    public async ValueTask InitializeAsync()
+    /// <param name="testOutputHelper">The test output helper for logging.</param>
+    /// <returns>ValueTask representing the asynchronous initialization operation.</returns>
+    public async ValueTask InitializeAsync(ITestOutputHelper testOutputHelper)
     {
-
-        // Create builder without per-test ITestOutputHelper to avoid recreating logging per test
-        Builder = TestDistributedApplicationBuilder.Create(o => { });
+        Builder = TestDistributedApplicationBuilder.Create(o =>
+        {
+            o.EnableResourceLogging = true;
+        })
+        .WithTestAndResourceLogging(testOutputHelper);
 
         // Configure Microcks with the artifacts used by tests so services are available
         var microcksBuilder = Builder.AddMicrocks("microcks")
@@ -103,11 +107,4 @@ public sealed class MicrocksMockingFixture : IAsyncLifetime, IDisposable
 
     }
 
-    /// <summary>
-    /// Disposes of the fixture resources.
-    /// </summary>
-    public void Dispose()
-    {
-        _ = DisposeAsync();
-    }
 }

@@ -29,7 +29,7 @@ namespace Microcks.Aspire.Tests.Fixtures.Contract;
 /// Fixture that adds two container resources (bad/good implementations)
 /// to the shared distributed application builder before Microcks is configured.
 /// </summary>
-public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposable
+public sealed class MicrocksContractValidationFixture : IAsyncDisposable
 {
     /// <summary>
     /// Gets the test distributed application builder.
@@ -49,11 +49,18 @@ public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposa
     private const string BAD_PASTRY_IMAGE = "quay.io/microcks/contract-testing-demo:01";
     private const string GOOD_PASTRY_IMAGE = "quay.io/microcks/contract-testing-demo:02";
 
-    /// <inheritdoc />
-    public async ValueTask InitializeAsync()
+    /// <summary>
+    /// Initialize the shared distributed application with Microcks and both implementations.
+    /// </summary>
+    /// <param name="testOutputHelper">The test output helper for logging.</param>
+    /// <returns>ValueTask representing the asynchronous initialization operation.</returns>
+    public async ValueTask InitializeAsync(ITestOutputHelper testOutputHelper)
     {
-        // Create builder without per-test ITestOutputHelper to avoid recreating logging per test
-        Builder = TestDistributedApplicationBuilder.Create(o => { });
+        Builder = TestDistributedApplicationBuilder.Create(o =>
+        {
+            o.EnableResourceLogging = true;
+        })
+        .WithTestAndResourceLogging(testOutputHelper);
 
         // Configure Microcks with the artifacts used by tests so services are available
         var microcksBuilder = Builder.AddMicrocks("microcks")
@@ -122,14 +129,6 @@ public sealed class MicrocksContractValidationFixture : IAsyncLifetime, IDisposa
         {
             // swallow, we're tearing down tests
         }
-    }
-
-    /// <summary>
-    /// Disposes of the fixture resources.
-    /// </summary>
-    public void Dispose()
-    {
-        _ = DisposeAsync();
     }
 
 }

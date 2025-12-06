@@ -18,6 +18,10 @@
     <PackageReference Include="Aspire.Hosting.Testing" />
     <PackageReference Include="Aspire.Hosting.Kafka" />
     <PackageReference Include="Aspire.Confluent.Kafka" />
+    <PackageReference Include="xunit.v3.runner.console">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
       <None Include="resources\**" CopyToOutputDirectory="PreserveNewest" />

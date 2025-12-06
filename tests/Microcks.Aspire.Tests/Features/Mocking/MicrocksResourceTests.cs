@@ -15,16 +15,14 @@
 //
 //
 
-using Xunit;
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Aspire.Hosting.Testing;
 using Aspire.Hosting;
 using Microcks.Aspire.Clients;
 using Microcks.Aspire.Tests.Fixtures.Mock;
+using Xunit;
 
 namespace Microcks.Aspire.Tests.Features.Mocking;
 
@@ -32,10 +30,20 @@ namespace Microcks.Aspire.Tests.Features.Mocking;
 /// Tests for the Microcks resource builder and runtime behavior.
 /// Uses a shared Microcks instance provided by <see cref="MicrocksMockingFixture"/>.
 /// </summary>
-[Collection(MicrocksMockingCollection.CollectionName)]
-public class MicrocksResourceTests(MicrocksMockingFixture fixture)
+public class MicrocksResourceTests(ITestOutputHelper testOutputHelper, MicrocksMockingFixture fixture)
+    : IClassFixture<MicrocksMockingFixture>, IAsyncLifetime
 {
     private readonly MicrocksMockingFixture _fixture = fixture;
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+
+    /// <summary>
+    /// Initialize the fixture before any test runs.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous initialization operation.</returns>
+    public async ValueTask InitializeAsync()
+    {
+        await this._fixture.InitializeAsync(_testOutputHelper);
+    }
 
     /// <summary>
     /// Builds a test distributed application with Microcks and ensures that
@@ -189,4 +197,12 @@ public class MicrocksResourceTests(MicrocksMockingFixture fixture)
         Assert.Equal(invocationCountBefore + 1, invocationCountAfter);
     }
 
+    /// <summary>
+    /// Dispose resources used by the fixture.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous dispose operation.</returns>
+    public async ValueTask DisposeAsync()
+    {
+        await this._fixture.DisposeAsync();
+    }
 }
