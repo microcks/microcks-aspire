@@ -28,6 +28,7 @@ using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Xunit;
 using Aspire.Hosting;
@@ -45,6 +46,7 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
 {
     private readonly MicrocksKafkaFixture _fixture = fixture;
     private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+    private ILogger<MicrocksKafkaTests> _logger = default!;
 
     /// <summary>
     /// Initialize the fixture before any test runs.
@@ -53,6 +55,7 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
     public async ValueTask InitializeAsync()
     {
         await this._fixture.InitializeAsync(_testOutputHelper);
+        _logger = _fixture.App.Services.GetRequiredService<ILogger<MicrocksKafkaTests>>();
     }
 
     /// <summary>
@@ -162,18 +165,18 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
             .Build();
 
         // Act
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Starting to send 5 messages...");
+        _logger.LogInformation("Starting to send 5 messages...");
         for (var i = 0; i < 5; i++)
         {
             await pipeline.ExecuteAsync(async cancellationToken =>
             {
-                _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Sending message {i + 1}/5");
+                _logger.LogInformation("Sending message {Current}/{Total}", i + 1, 5);
                 var deliveryResult = await producer.ProduceAsync("pastry-orders", new Message<string, string>
                 {
                     Key = Guid.NewGuid().ToString(),
                     Value = message
                 }, cancellationToken);
-                _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Message {i + 1} delivered to {deliveryResult.TopicPartitionOffset}");
+                _logger.LogInformation("Message {Index} delivered to {Destination}", i + 1, deliveryResult.TopicPartitionOffset);
             }, TestContext.Current.CancellationToken);
 
             producer.Flush(TestContext.Current.CancellationToken);
@@ -181,13 +184,13 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
         }
 
         // Wait for a test result
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] All messages sent, waiting for test result...");
+        _logger.LogInformation("All messages sent, waiting for test result...");
         var testResult = await taskTestResult;
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Test result received");
+        _logger.LogInformation("Test result received");
 
         // You may inspect complete response object with following:
         var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
-        TestContext.Current.TestOutputHelper.WriteLine(json);
+        _logger.LogInformation("Test result payload:{NewLine}{Payload}", Environment.NewLine, json);
 
         // Assert
         Assert.False(testResult.InProgress);
@@ -257,13 +260,13 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
         producer.Flush(TestContext.Current.CancellationToken);
 
         // Wait for a test result
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] All messages sent, waiting for test result...");
+        _logger.LogInformation("All messages sent, waiting for test result...");
         var testResult = await taskTestResult;
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Test result received");
+        _logger.LogInformation("Test result received");
 
         // You may inspect complete response object with following:
         var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
-        TestContext.Current.TestOutputHelper.WriteLine(json);
+        _logger.LogInformation("Test result payload:{NewLine}{Payload}", Environment.NewLine, json);
 
         // Assert
         Assert.False(testResult.InProgress, "Test should have completed");
@@ -320,13 +323,13 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
         });
         var host = hostBuilder.Build();
 
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Starting Kafka client host...");
+        _logger.LogInformation("Starting Kafka client host...");
         await host.StartAsync(TestContext.Current.CancellationToken);
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Kafka client host started");
+        _logger.LogInformation("Kafka client host started");
 
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Creating required Kafka topics...");
+        _logger.LogInformation("Creating required Kafka topics...");
         await CreateRequiredTopicsAsync(TestContext.Current.CancellationToken);
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Kafka topics creation completed");
+        _logger.LogInformation("Kafka topics creation completed");
 
         return host;
     }
@@ -350,7 +353,7 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
         using var adminClient = new AdminClientBuilder(config).Build();
 
         var topics = new List<string> { "pastry-orders" };
-        _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Attempting to create topics: {string.Join(", ", topics)}");
+        _logger.LogInformation("Attempting to create topics: {Topics}", string.Join(", ", topics));
 
         try
         {
@@ -361,18 +364,18 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
                     NumPartitions = 1,
                     ReplicationFactor = 1
                 }));
-            _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Topics created successfully");
+            _logger.LogInformation("Topics created successfully");
         }
         catch (CreateTopicsException ex)
         {
             // Ignore if topic already exists
             if (ex.Results.Any(r => r.Error.Code != Confluent.Kafka.ErrorCode.TopicAlreadyExists))
             {
-                _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Error creating topics: {ex}");
+                _logger.LogError(ex, "Error creating topics");
             }
             else
             {
-                _testOutputHelper.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Topics already exist - skipping creation");
+                _logger.LogInformation("Topics already exist - skipping creation");
             }
         }
     }
