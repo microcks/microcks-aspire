@@ -58,6 +58,8 @@ public static class DistributedApplicationTestingBuilderExtensions
             });
 
             builder.AddFilter("Aspire.Hosting", LogLevel.Trace);
+            // No Polly
+            builder.AddFilter("Polly", LogLevel.None);
         });
 
         return builder;
