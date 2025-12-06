@@ -18,21 +18,32 @@
 using System;
 using System.Threading.Tasks;
 using Microcks.Aspire.Clients.Model;
-using Microcks.Aspire.Testing.Features.Mocking.Contract;
+using Microcks.Aspire.Tests.Fixtures.Contract;
 using Aspire.Hosting;
 using Xunit;
-using Microcks.Aspire.Tests.Fixtures.Contract;
 
 namespace Microcks.Aspire.Tests.Features.ContractTesting;
 
 /// <summary>
 /// Postman contract testing using Microcks in Aspire.
 /// </summary>
-/// <param name="fixture"></param>
-[Collection(MicrocksContractValidationCollection.CollectionName)]
-public sealed class PostmanContractTestingTests(MicrocksContractValidationFixture fixture)
+/// <param name="testOutputHelper">The test output helper for logging.</param>
+/// <param name="fixture">The contract validation fixture.</param>
+public sealed class PostmanContractTestingTests(ITestOutputHelper testOutputHelper,
+                                                MicrocksContractValidationFixture fixture)
+    : IClassFixture<MicrocksContractValidationFixture>, IAsyncLifetime
 {
     private readonly MicrocksContractValidationFixture _fixture = fixture;
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+
+    /// <summary>
+    /// Initialize the fixture before any test runs.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous initialization operation.</returns>
+    public async ValueTask InitializeAsync()
+    {
+        await this._fixture.InitializeAsync(_testOutputHelper);
+    }
 
     /// <summary>
     /// Tests calling the TestEndpoint API of Microcks with the bad implementation,
@@ -73,5 +84,14 @@ public sealed class PostmanContractTestingTests(MicrocksContractValidationFixtur
         Assert.True(testStepResult.Message.Contains("Valid size in response pastries")
             || testStepResult.Message.Contains("Valid name in response pastry")
             || testStepResult.Message.Contains("Valid price in response pastry"));
+    }
+
+    /// <summary>
+    /// Dispose the fixture after all tests have run.
+    /// </summary>
+    /// <returns>ValueTask representing the asynchronous dispose operation.</returns>
+    public async ValueTask DisposeAsync()
+    {
+        await this._fixture.DisposeAsync();
     }
 }

@@ -31,7 +31,7 @@ namespace Microcks.Aspire.Tests.Fixtures.Async.Kafka;
 /// Fixture that sets up a shared Microcks instance with Async Minion and Kafka
 /// for tests requiring Kafka messaging capabilities.
 /// </summary>
-public sealed class MicrocksKafkaFixture
+public sealed class MicrocksKafkaFixture : IAsyncDisposable
 {
     /// <summary>
     /// Gets the test distributed application builder.
@@ -53,7 +53,11 @@ public sealed class MicrocksKafkaFixture
     /// </summary>
     public KafkaServerResource KafkaResource { get; private set; } = default!;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Initializes the shared distributed application with Microcks, Async Minion and Kafka.
+    /// </summary>
+    /// <param name="testOutputHelper">The test output helper for logging.</param>
+    /// <returns>ValueTask representing the asynchronous initialization operation.</returns>
     public async ValueTask InitializeAsync(ITestOutputHelper testOutputHelper)
     {
         Builder = TestDistributedApplicationBuilder.Create(o =>
@@ -98,7 +102,7 @@ public sealed class MicrocksKafkaFixture
     /// <summary>
     /// Dispose resources used by the fixture.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>ValueTask representing the asynchronous dispose operation.</returns>
     public async ValueTask DisposeAsync()
     {
         try

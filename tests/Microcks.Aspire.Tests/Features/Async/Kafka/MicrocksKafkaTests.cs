@@ -20,19 +20,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
+using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using Microcks.Aspire.Async;
 using Microcks.Aspire.Clients.Model;
 using Microcks.Aspire.Tests.Fixtures.Async.Kafka;
-using Confluent.Kafka;
-using Confluent.Kafka.Admin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Xunit;
-using Aspire.Hosting;
-using System.Text.Json;
 
 namespace Microcks.Aspire.Tests.Features.Async.Kafka;
 
@@ -40,7 +40,8 @@ namespace Microcks.Aspire.Tests.Features.Async.Kafka;
 /// Tests for the Microcks Async Minion with Kafka resource builder and runtime behavior.
 /// Uses a shared Microcks instance with Async Minion and Kafka provided by <see cref="MicrocksKafkaFixture"/>.
 /// </summary>
-//[Collection(MicrocksKafkaCollection.CollectionName)]
+/// <param name="testOutputHelper">The test output helper for logging.</param>
+/// <param name="fixture">The Microcks Kafka fixture.</param>
 public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, MicrocksKafkaFixture fixture)
     : IClassFixture<MicrocksKafkaFixture>, IAsyncLifetime
 {

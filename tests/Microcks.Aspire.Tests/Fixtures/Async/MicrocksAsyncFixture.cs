@@ -31,7 +31,7 @@ namespace Microcks.Aspire.Tests.Fixtures.Async;
 /// Fixture that sets up a shared Microcks instance with Async Minion
 /// for tests requiring asynchronous messaging capabilities.
 /// </summary>
-public sealed class MicrocksAsyncFixture : IAsyncLifetime
+public sealed class MicrocksAsyncFixture : IAsyncDisposable
 {
     /// <summary>
     /// Gets the test distributed application builder.
@@ -54,12 +54,15 @@ public sealed class MicrocksAsyncFixture : IAsyncLifetime
     /// <summary>
     /// Initializes the shared distributed application with Microcks and Async Minion.
     /// </summary>
+    /// <param name="testOutputHelper">The test output helper for logging.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    /// <inheritdoc />
-    public async ValueTask InitializeAsync()
+    public async ValueTask InitializeAsync(ITestOutputHelper testOutputHelper)
     {
-        // Create builder without per-test ITestOutputHelper to avoid recreating logging per test
-        Builder = TestDistributedApplicationBuilder.Create(o => { });
+        Builder = TestDistributedApplicationBuilder.Create(o =>
+        {
+            o.EnableResourceLogging = true;
+        })
+        .WithTestAndResourceLogging(testOutputHelper);
 
         // Good
         var wsGoodImplResource = new ContainerResource("good-contract-async");
