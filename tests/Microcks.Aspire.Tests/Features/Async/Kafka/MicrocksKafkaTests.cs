@@ -145,7 +145,7 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
             ServiceId = "Pastry orders API:0.1.0",
             RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
             TestEndpoint = "kafka://kafka:9093/pastry-orders", // 9093 is the internal Docker network port
-            Timeout = TimeSpan.FromSeconds(5)
+            Timeout = TimeSpan.FromSeconds(3)
         };
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
@@ -223,7 +223,7 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
             ServiceId = "Pastry orders API:0.1.0",
             RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
             TestEndpoint = "kafka://kafka:9093/pastry-orders", // 9093 is the internal Docker network port
-            Timeout = TimeSpan.FromMilliseconds(40000)
+            Timeout = TimeSpan.FromSeconds(4)
         };
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
@@ -251,11 +251,13 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
         {
             await pipeline.ExecuteAsync(async cancellationToken =>
             {
+                _logger.LogInformation("Sending bad message {Current}/{Total}", i + 1, 5);
                 var deliveryResult = await producer.ProduceAsync("pastry-orders", new Message<string, string>
                 {
                     Key = Guid.NewGuid().ToString(),
                     Value = message
                 }, cancellationToken);
+                _logger.LogInformation("Bad message {Index} delivered to {Destination}", i + 1, deliveryResult.TopicPartitionOffset);
             }, TestContext.Current.CancellationToken);
 
             _logger.LogInformation("Waiting 500ms between messages...");
