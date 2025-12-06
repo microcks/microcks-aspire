@@ -235,8 +235,11 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
         // but it validates that the test setup and endpoint format are correct
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
 
+        _logger.LogInformation("Test started, waiting a bit to let it initialize...");
         // Wait a bit to let the test initialize
         await Task.Delay(750, TestContext.Current.CancellationToken);
+
+        _logger.LogInformation("Starting to send 5 bad messages...");
 
         // Retry policy for producing messages
         var pipeline = new ResiliencePipelineBuilder()
@@ -255,6 +258,7 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
                 }, cancellationToken);
             }, TestContext.Current.CancellationToken);
 
+            _logger.LogInformation("Waiting 500ms between messages...");
             await Task.Delay(500, TestContext.Current.CancellationToken);
         }
         producer.Flush(TestContext.Current.CancellationToken);
