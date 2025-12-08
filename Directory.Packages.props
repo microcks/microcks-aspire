@@ -24,7 +24,7 @@
     <PackageVersion Include="Aspire.Confluent.Kafka" Version="13.0.0" />
   </ItemGroup>
   <ItemGroup Label="MainPackages">
-    <PackageVersion Include="Refit.HttpClientFactory" Version="8.0.0" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="9.0.2" />
   </ItemGroup>
   <ItemGroup Label="SourceLinkPackages">
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
