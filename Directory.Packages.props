@@ -10,7 +10,7 @@
     <PackageVersion Include="FakeItEasy" Version="8.3.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="MartinCostello.Logging.XUnit.v3" Version="0.7.0" />
-    <PackageVersion Include="xunit.v3.extensibility.core" Version="3.2.0" />
+    <PackageVersion Include="xunit.v3.extensibility.core" Version="3.2.1" />
     <PackageVersion Include="xunit.v3.runner.console" Version="3.2.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
