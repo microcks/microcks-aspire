@@ -69,8 +69,6 @@ public sealed class MicrocksMockingFixture : IAsyncLifetime, IDisposable
             )
             .WithMainRemoteArtifacts("https://raw.githubusercontent.com/microcks/microcks/master/samples/APIPastry-openapi.yaml");
 
-        microcksBuilder.WithHostNetworkAccess("localhost");
-
         App = Builder.Build();
         await App.StartAsync(TestContext.Current.CancellationToken)
             .ConfigureAwait(false);

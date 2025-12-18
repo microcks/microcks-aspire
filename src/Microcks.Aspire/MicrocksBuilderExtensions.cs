@@ -165,26 +165,6 @@ public static class MicrocksBuilderExtensions
             : Path.GetFullPath(sourcePath, builder.ApplicationBuilder.AppHostDirectory);
     }
 
-
-    /// <summary>
-    /// Adds network access to the host machine from within the Microcks container.
-    /// </summary>
-    /// <param name="builder">The <see cref="IResourceBuilder{T}"/>.</param>
-    /// <param name="hostAlias">The hostname alias to use for the host machine. Defaults to 'host.docker.internal'.</param>
-    /// <returns>A reference to the <see cref="IResourceBuilder{T}"/>.</returns>
-    /// <remarks>
-    /// This allows the Microcks container to access services running on the host machine
-    /// using the specified hostname alias. 'host.docker.internal' is Docker's standard
-    /// hostname for accessing the host machine from containers.
-    /// </remarks>
-    public static IResourceBuilder<MicrocksResource> WithHostNetworkAccess(this IResourceBuilder<MicrocksResource> builder, string hostAlias = "host.docker.internal")
-    {
-        ArgumentNullException.ThrowIfNull(builder, nameof(builder));
-
-        return builder.WithContainerRuntimeArgs($"--add-host={hostAlias}:host-gateway");
-    }
-
-
     /// <summary>
     /// Configures the Microcks resource to include and enable an Async Minion.
     /// This allows Microcks to handle asynchronous messaging protocols.
