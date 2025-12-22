@@ -148,48 +148,46 @@ Assert.Equal(initialCount + expectedCalls, finalCount);
 
 If you want to ensure that your application under test is conformant to an OpenAPI contract (or other type of contract), you can launch a Microcks contract/conformance test using Aspire's distributed application model and MicrocksClient integration.
 
-Here is an example using Aspire and the Microcks extension, fully aligned with the test code:
+For container-to-host communication, use `GetEndpointForNetwork` to retrieve an endpoint URL accessible from the Aspire container network, allowing Microcks (running in a container) to reach your application under test.
 
-You can use service discovery for endpoint resolution (note: endpoint name is case-sensitive and must match your configuration, e.g., "order-api" or "Order-Api"):
+**Prerequisites:**
+- Set the `ASPIRE_ENABLE_CONTAINER_TUNNEL` environment variable to `true` in your launch profile or environment.
 
-```csharp
-[Fact]
-public async Task TestOpenApiContract_WithServiceDiscovery()
+> **Note:** The universal container-to-host communication is currently an experimental feature and needs to be enabled via environment variable. This fixes long-standing issues with container-to-host communication ([issue #6547](https://github.com/dotnet/aspire/issues/6547)).
+
+Example in `launchSettings.json`:
+```json
 {
-    var app = orderHostAspireFactory.App;
-    TestRequest request = new()
-    {
-        ServiceId = "Order Service API:0.1.0",
-        RunnerType = TestRunnerType.OPEN_API_SCHEMA,
-        TestEndpoint = $"http://order-api:3002/api" // Container Host + Target Port
-    };
-    var microcksClient = app.CreateMicrocksClient("microcks");
-    var testResult = await microcksClient.TestEndpointAsync(request, TestContext.Current.CancellationToken);
-    var json = JsonSerializer.Serialize(testResult, new JsonSerializerOptions { WriteIndented = true });
-    testOutputHelper.WriteLine(json);
-    Assert.True(testResult.Success);
-    Assert.False(testResult.InProgress, "Test should not be in progress");
-    Assert.Single(testResult.TestCaseResults);
+  "profiles": {
+    "YourTestProject": {
+      "environmentVariables": {
+        "ASPIRE_ENABLE_CONTAINER_TUNNEL": "true"
+      }
+    }
+  }
 }
 ```
 
-And here is the same example but using direct host access (note: ensure that your Microcks instance can access the host.docker.internal address):
+**Usage:**
 
 ```csharp
 [Fact]
 public async Task TestOpenApiContract()
 {
     // Arrange
-    var app = orderHostAspireFactory.App;
-    int port = app.GetEndpoint("order-api").Port; // Get the mapped port
+    var app = _fixture.App;
 
-    // Act
+    // Use GetEndpointForNetwork with the container network context so that Microcks (running in a container)
+    // can access the order-api service from the Aspire container network
+    Uri endpoint = app.GetEndpointForNetwork("order-api", KnownNetworkIdentifiers.DefaultAspireContainerNetwork);
+
     TestRequest request = new()
     {
         ServiceId = "Order Service API:0.1.0",
         RunnerType = TestRunnerType.OPEN_API_SCHEMA,
-        TestEndpoint = $"http://host.docker.internal:{port}/api"
+        TestEndpoint = $"{endpoint.Scheme}://{endpoint.Host}:{endpoint.Port}/api",
     };
+
     var microcksClient = app.CreateMicrocksClient("microcks");
     var testResult = await microcksClient.TestEndpointAsync(request, TestContext.Current.CancellationToken);
 
@@ -203,6 +201,8 @@ public async Task TestOpenApiContract()
     Assert.Single(testResult.TestCaseResults);
 }
 ```
+
+> **Note:** `KnownNetworkIdentifiers.DefaultAspireContainerNetwork` refers to the default Aspire container network (`aspire.dev.internal`).
 
 
 #### Business conformance checks
