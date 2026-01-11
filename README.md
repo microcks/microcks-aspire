@@ -404,3 +404,59 @@ foreach (var eventItem in events)
 ```
 
 This allows developers to perform detailed validation of the async messages exchanged during contract testing.
+
+## Features
+
+This section lists the features related to Microcks initialization, usage and testing.
+
+### Initialization
+
+| Feature | Support |
+| --- | --- |
+| Secret creation | ❌ |
+| Snapshot restoration | ✅ |
+| Local files (primary) | ✅ |
+| Local files (secondary) | ✅ |
+| Remote urls (primary) | ✅ |
+| Remote urls (secondary) | ❌ |
+| Remote urls with Secret | ❌ |
+| Enable DEBUG log | ✅ |
+
+### Accessing endpoints
+
+| Feature | Support |
+| --- | --- |
+| REST endpoints | ✅ |
+| Soap endpoints | ✅ |
+| GraphQL endpoints | ✅ |
+| gRPC endpoints | ✅ |
+| Invocation verification | ✅ |
+| Get invocation stats | ✅ |
+
+### Testing features
+
+| Feature | Support |
+| --- | --- |
+| OpenAPI conformance | ✅ |
+| Soap conformance | ✅ |
+| GraphQL conformance | ✅ |
+| gRPC conformance | ✅ |
+| Postman conformance | ✅ |
+| AsyncAPI conformance | ✅ |
+| Get TestCase messages | ✅ |
+
+### Supported Mocking Protocols
+
+| Protocol | Support |
+| --- | --- |
+| Kafka | ✅ |
+| WebSocket | ✅ |
+| RabbitMQ | ❌ |
+| MQTT | ❌ |
+| AMQP | ❌ |
+| NATS | ❌ |
+| Google PubSub | ❌ |
+| Amazon SQS | ❌ |
+| Amazon SNS | ❌ |
+
+
