@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,10 +45,10 @@ internal sealed class MicrocksApplicationEventingSubscriber
     : IDistributedApplicationEventingSubscriber, IAsyncDisposable
 {
     private readonly CancellationTokenSource _shutdownCancellationTokenSource = new();
-    private ILogger<MicrocksResource> _logger;
-    private ResourceNotificationService _resourceNotificationService;
-    private DistributedApplicationExecutionContext _executionContext;
-    private IServiceProvider _serviceProvider;
+    private readonly ILogger<MicrocksResource> _logger;
+    private readonly ResourceNotificationService _resourceNotificationService;
+    private readonly DistributedApplicationExecutionContext _executionContext;
+    private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MicrocksApplicationEventingSubscriber"/> class.
@@ -148,6 +149,7 @@ internal sealed class MicrocksApplicationEventingSubscriber
         }
     }
 
+    [SuppressMessage("SonarAnalyzer.CSharp", "S2589", Justification = "OfType always returns non-null collection")]
     private async Task UploadArtifactsAsync(
         IMicrocksClient microcksClient,
         ResourceAnnotationCollection annotations,
@@ -233,5 +235,6 @@ internal sealed class MicrocksApplicationEventingSubscriber
     public async ValueTask DisposeAsync()
     {
         await _shutdownCancellationTokenSource.CancelAsync();
+        _shutdownCancellationTokenSource.Dispose();
     }
 }

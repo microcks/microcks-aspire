@@ -30,7 +30,7 @@ internal sealed class SecondaryArtifactAnnotation : IResourceAnnotation
 
     public SecondaryArtifactAnnotation(string sourcePath)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(sourcePath, nameof(sourcePath));
+        ArgumentNullException.ThrowIfNullOrEmpty(sourcePath);
         if (!File.Exists(sourcePath))
         {
             throw new FileNotFoundException($"Artifact file not found: {sourcePath}");

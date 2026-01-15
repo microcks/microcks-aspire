@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Aspire.Hosting.ApplicationModel;
@@ -49,7 +50,7 @@ public static class MicrocksBuilderExtensions
     /// <exception cref="ArgumentException">Thrown when <paramref name="name"/> is null or empty.</exception>
     public static IResourceBuilder<MicrocksResource> AddMicrocks(this IDistributedApplicationBuilder builder, string name)
     {
-        ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         var microcksResource = new MicrocksResource(name);
 
@@ -63,7 +64,9 @@ public static class MicrocksBuilderExtensions
             .WithEnvironment("OTEL_JAVAAGENT_ENABLED", "true")
             .WithEnvironment(context =>
             {
+#pragma warning disable S5332 // Using http for local container callback is acceptable
                 context.EnvironmentVariables["TEST_CALLBACK_URL"] = $"http://{context.Resource.Name}:8080";
+#pragma warning restore S5332
             })
             .WithOtlpExporter();
 
@@ -329,7 +332,7 @@ public static class MicrocksBuilderExtensions
         Action<IResourceBuilder<MicrocksPostmanResource>>? configurePostman = null,
         string? containerName = null)
     {
-        ArgumentNullException.ThrowIfNull(microcksBuilder, nameof(microcksBuilder));
+        ArgumentNullException.ThrowIfNull(microcksBuilder);
 
         containerName ??= $"{microcksBuilder.Resource.Name}-postman";
 

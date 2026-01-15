@@ -27,7 +27,7 @@ internal sealed class SnapshotsAnnotation : IResourceAnnotation
 
     public SnapshotsAnnotation(string snapshotsFilePath)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(snapshotsFilePath, nameof(snapshotsFilePath));
+        ArgumentNullException.ThrowIfNullOrEmpty(snapshotsFilePath);
         if (!File.Exists(snapshotsFilePath))
         {
             throw new FileNotFoundException($"Snapshots file not found: {snapshotsFilePath}", snapshotsFilePath);

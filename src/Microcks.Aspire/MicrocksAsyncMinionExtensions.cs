@@ -41,7 +41,7 @@ public static class MicrocksAsyncMinionExtensions
         int port = 9093
         )
     {
-        ArgumentNullException.ThrowIfNull(microcksBuilder, nameof(microcksBuilder));
+        ArgumentNullException.ThrowIfNull(microcksBuilder);
         ArgumentNullException.ThrowIfNull(kafkaBuilder, nameof(kafkaBuilder));
 
         microcksBuilder.WithEnvironment(context =>

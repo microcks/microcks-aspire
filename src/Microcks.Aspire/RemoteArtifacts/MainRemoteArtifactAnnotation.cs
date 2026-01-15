@@ -35,7 +35,7 @@ internal sealed class MainRemoteArtifactAnnotation : IRemoteArtifactAnnotation
     /// <param name="remoteArtifact">The main remote artifact.</param>
     public MainRemoteArtifactAnnotation(RemoteArtifact remoteArtifact)
     {
-        ArgumentNullException.ThrowIfNull(remoteArtifact, nameof(remoteArtifact));
+        ArgumentNullException.ThrowIfNull(remoteArtifact);
         RemoteArtifact = remoteArtifact;
     }
 }
