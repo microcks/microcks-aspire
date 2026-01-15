@@ -16,23 +16,17 @@
 //
 
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Aspire.Hosting;
-using Microcks.Aspire.RemoteArtifacts;
 using Microcks.Aspire.Testing;
 using Xunit;
 
-namespace Microcks.Aspire.Tests.Fixtures.Mock;
+namespace Microcks.Aspire.Tests.Fixtures.Secrets;
 
 /// <summary>
-/// Shared fixture that starts a single Microcks instance for all tests in the collection.
-/// Use this as a collection fixture so tests reuse the same running Microcks.
-/// The fixture constructs a <see cref="TestDistributedApplicationBuilder"/>,
-/// configures Microcks with the artifacts used by tests and starts the
-/// distributed application once for the collection lifetime.
+/// Shared fixture that starts a Microcks instance configured with secrets for testing.
 /// </summary>
-public sealed class MicrocksMockingFixture : IAsyncDisposable
+public sealed class MicrocksSecretsFixture : IAsyncDisposable
 {
     /// <summary>
     /// Gets the test distributed application builder.
@@ -50,7 +44,7 @@ public sealed class MicrocksMockingFixture : IAsyncDisposable
     public MicrocksResource MicrocksResource { get; private set; } = default!;
 
     /// <summary>
-    /// Initializes the shared distributed application and starts Microcks.
+    /// Initializes the shared distributed application and starts Microcks with secrets.
     /// </summary>
     /// <param name="testOutputHelper">The test output helper for logging.</param>
     /// <returns>ValueTask representing the asynchronous initialization operation.</returns>
@@ -62,17 +56,23 @@ public sealed class MicrocksMockingFixture : IAsyncDisposable
         })
         .WithTestAndResourceLogging(testOutputHelper);
 
-        // Configure Microcks with the artifacts used by tests so services are available
+        var secretToken = Builder.AddParameter(
+            "my-secret-token",
+            "abc-123-xyz",
+            secret: true);
+        var secretTokenHeader = Builder.AddParameter(
+            "my-secret-token-header",
+            "x-microcks",
+            secret: true);
+
+        // Configure Microcks with secrets for testing
         var microcksBuilder = Builder.AddMicrocks("microcks")
-            .WithSnapshots(Path.Combine(AppContext.BaseDirectory, "resources", "microcks-repository.json"))
-            .WithMainArtifacts(
-                Path.Combine(AppContext.BaseDirectory, "resources", "apipastries-openapi.yaml"),
-                Path.Combine(AppContext.BaseDirectory, "resources", "subdir", "weather-forecast-openapi.yaml")
-            )
-            .WithSecondaryArtifacts(
-                Path.Combine(AppContext.BaseDirectory, "resources", "apipastries-postman-collection.json")
-            )
-            .WithMainRemoteArtifacts(new RemoteArtifact("https://raw.githubusercontent.com/microcks/microcks/master/samples/APIPastry-openapi.yaml"));
+            .WithSecrets(
+                secret => secret
+                    .WithName("my-secret")
+                    .WithToken(secretToken)
+                    .WithTokenHeader(secretTokenHeader)
+            );
 
         App = Builder.Build();
         await App.StartAsync(TestContext.Current.CancellationToken)
@@ -101,9 +101,7 @@ public sealed class MicrocksMockingFixture : IAsyncDisposable
         }
         catch
         {
-            // swallow, we're tearing down tests
+            // Ignore disposal errors in tests
         }
-
     }
-
 }

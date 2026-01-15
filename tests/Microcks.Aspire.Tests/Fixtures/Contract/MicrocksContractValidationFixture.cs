@@ -20,6 +20,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Microcks.Aspire.RemoteArtifacts;
 using Microcks.Aspire.Testing;
 using Xunit;
 
@@ -73,7 +74,7 @@ public sealed class MicrocksContractValidationFixture : IAsyncDisposable
             .WithSecondaryArtifacts(
                 Path.Combine(AppContext.BaseDirectory, "resources", "apipastries-postman-collection.json")
             )
-            .WithMainRemoteArtifacts("https://raw.githubusercontent.com/microcks/microcks/master/samples/APIPastry-openapi.yaml");
+            .WithMainRemoteArtifacts(new RemoteArtifact("https://raw.githubusercontent.com/microcks/microcks/master/samples/APIPastry-openapi.yaml"));
 
         // Add bad implementation container
         var badImpl = new ContainerResource("bad-impl");

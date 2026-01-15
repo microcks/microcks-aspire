@@ -128,9 +128,9 @@ internal sealed class MicrocksClient : IMicrocksClient
     }
 
     /// <inheritdoc />
-    public async Task ImportRemoteArtifactAsync(string remoteUrl, CancellationToken cancellationToken)
+    public async Task ImportRemoteArtifactAsync(string remoteUrl, bool mainArtifact, CancellationToken cancellationToken)
     {
-        var result = await _client.DownloadArtifactAsync(true, remoteUrl, cancellationToken);
+        var result = await _client.DownloadArtifactAsync(mainArtifact, remoteUrl, cancellationToken);
         if (result.StatusCode != HttpStatusCode.Created)
         {
             _logger.LogError("Failed to import remote artifact from '{RemoteUrl}' with status code {StatusCode}", remoteUrl, result.StatusCode);
@@ -318,4 +318,21 @@ internal sealed class MicrocksClient : IMicrocksClient
 
         return events;
     }
+
+    /// <inheritdoc />
+    public async Task CreateSecretAsync(Secret secret, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(secret);
+
+        var response = await _client.CreateSecretAsync(secret, cancellationToken);
+
+        if (response.StatusCode != HttpStatusCode.Created)
+        {
+            _logger.LogError("Failed to create secret '{SecretName}' with status code {StatusCode}", secret.Name, response.StatusCode);
+            throw new InvalidOperationException($"Failed to create secret '{secret.Name}'");
+        }
+
+        _logger.LogInformation("Secret '{SecretName}' created successfully", secret.Name);
+    }
+
 }

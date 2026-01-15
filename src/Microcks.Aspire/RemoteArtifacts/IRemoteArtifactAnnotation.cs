@@ -15,18 +15,17 @@
 //
 //
 
-using System;
 using Aspire.Hosting.ApplicationModel;
 
-namespace Microcks.Aspire.MainRemoteArtifacts;
+namespace Microcks.Aspire.RemoteArtifacts;
 
-internal sealed class MainRemoteArtifactAnnotation : IResourceAnnotation
+/// <summary>
+/// Base interface for remote artifact annotations.
+/// </summary>
+internal interface IRemoteArtifactAnnotation : IResourceAnnotation
 {
-    public string RemoteArtifactUrl { get; }
-
-    public MainRemoteArtifactAnnotation(string remoteArtifactUrl)
-    {
-        ArgumentNullException.ThrowIfNull(remoteArtifactUrl, nameof(remoteArtifactUrl));
-        RemoteArtifactUrl = remoteArtifactUrl;
-    }
+    /// <summary>
+    /// Gets the remote artifact.
+    /// </summary>
+    RemoteArtifact RemoteArtifact { get; }
 }

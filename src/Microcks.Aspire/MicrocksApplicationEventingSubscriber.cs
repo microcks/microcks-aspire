@@ -26,7 +26,8 @@ using Aspire.Hosting.Eventing;
 using Aspire.Hosting.Lifecycle;
 using Microcks.Aspire.Clients;
 using Microcks.Aspire.FileArtifacts;
-using Microcks.Aspire.MainRemoteArtifacts;
+using Microcks.Aspire.RemoteArtifacts;
+using Microcks.Aspire.Secrets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -117,13 +118,25 @@ internal sealed class MicrocksApplicationEventingSubscriber
 
                 ResourceAnnotationCollection annotations = microcksResource.Annotations;
 
+                // Create secrets in Microcks
+                var secretResources = appModel.Resources
+                    .OfType<MicrocksSecretResource>()
+                    .Where(s => s.Parent == microcksResource);
+                await CreateSecretsAsync(microcksClient, secretResources, cancellationTokenSource.Token)
+                    .ConfigureAwait(false);
+
                 // Upload Microcks artifacts
                 await UploadArtifactsAsync(microcksClient, annotations, cancellationTokenSource.Token)
                     .ConfigureAwait(false);
 
                 // Import Microcks remote artifacts
                 var remoteArtifactUrls = annotations.OfType<MainRemoteArtifactAnnotation>();
-                await ImportRemoteArtifactsAsync(microcksClient, remoteArtifactUrls, cancellationTokenSource.Token)
+                await ImportRemoteArtifactsAsync(microcksClient, remoteArtifactUrls, mainArtifact: true, cancellationTokenSource.Token)
+                    .ConfigureAwait(false);
+
+                // Import Microcks secondary remote artifacts
+                var secondaryRemoteArtifactUrls = annotations.OfType<SecondaryRemoteArtifactAnnotation>();
+                await ImportRemoteArtifactsAsync(microcksClient, secondaryRemoteArtifactUrls, mainArtifact: false, cancellationTokenSource.Token)
                     .ConfigureAwait(false);
 
                 var snapshotAnnotations = annotations.OfType<SnapshotsAnnotation>();
@@ -169,17 +182,46 @@ internal sealed class MicrocksApplicationEventingSubscriber
 
     private async Task ImportRemoteArtifactsAsync(
         IMicrocksClient microcksClient,
-        IEnumerable<MainRemoteArtifactAnnotation> remoteArtifactUrls,
+        IEnumerable<IRemoteArtifactAnnotation> remoteArtifactAnnotations,
+        bool mainArtifact,
         CancellationToken cancellationToken)
     {
-        if (remoteArtifactUrls == null || !remoteArtifactUrls.Any())
+        if (remoteArtifactAnnotations == null || !remoteArtifactAnnotations.Any())
         {
             return;
         }
 
-        foreach (var remoteUrl in remoteArtifactUrls.Select(a => a.RemoteArtifactUrl))
+        foreach (var remoteUrl in remoteArtifactAnnotations.Select(a => a.RemoteArtifact.Url))
         {
-            await microcksClient.ImportRemoteArtifactAsync(remoteUrl, cancellationToken);
+            await microcksClient.ImportRemoteArtifactAsync(remoteUrl, mainArtifact, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Creates secrets in Microcks for the given secret resources.
+    /// </summary>
+    /// <param name="microcksClient">The Microcks client used to create secrets.</param>
+    /// <param name="secretResources">The secret resources to create.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    private async Task CreateSecretsAsync(
+        IMicrocksClient microcksClient,
+        IEnumerable<MicrocksSecretResource> secretResources,
+        CancellationToken cancellationToken)
+    {
+        if (secretResources == null || !secretResources.Any())
+        {
+            return;
+        }
+
+        foreach (var secretResource in secretResources)
+        {
+            var secret = await secretResource.BuildSecretAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            _logger.LogInformation("Creating secret '{SecretName}' in Microcks", secret.Name);
+
+            await microcksClient.CreateSecretAsync(secret, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 

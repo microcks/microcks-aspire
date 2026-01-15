@@ -78,9 +78,10 @@ public interface IMicrocksClient
     /// Imports remote artifact to the Microcks instance.
     /// </summary>
     /// <param name="remoteUrl">The URL of the remote artifact to import.</param>
+    /// <param name="mainArtifact">Whether the artifact is a main (primary) artifact. If false, it's treated as a secondary artifact.</param>
     /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
     /// <returns>A task representing the import operation.</returns>
-    Task ImportRemoteArtifactAsync(string remoteUrl, CancellationToken cancellationToken);
+    Task ImportRemoteArtifactAsync(string remoteUrl, bool mainArtifact, CancellationToken cancellationToken);
 
     /// <summary>
     /// Verify that a service has been called according to its name and version.
@@ -113,4 +114,12 @@ public interface IMicrocksClient
     /// <inheritdoc />
     public Task<List<UnidirectionalEvent>> GetEventMessagesForTestCaseAsync(
         TestResult testResult, string operationName, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Creates a new secret in Microcks.
+    /// </summary>
+    /// <param name="secret">The secret to create.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task representing the create operation.</returns>
+    Task CreateSecretAsync(Secret secret, CancellationToken cancellationToken = default);
 }

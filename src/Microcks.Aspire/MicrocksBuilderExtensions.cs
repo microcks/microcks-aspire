@@ -23,8 +23,10 @@ using Aspire.Hosting.Lifecycle;
 using Microcks.Aspire;
 using Microcks.Aspire.Async;
 using Microcks.Aspire.FileArtifacts;
-using Microcks.Aspire.MainRemoteArtifacts;
+using Microcks.Aspire.Secrets;
 using Microcks.Aspire.PostmanRunner;
+using Microcks.Aspire.RemoteArtifacts;
+
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Aspire.Hosting;
@@ -94,24 +96,6 @@ public static class MicrocksBuilderExtensions
     }
 
     /// <summary>
-    /// Adds remote artifact annotations (URLs) to be imported as main artifacts
-    /// by the Microcks resource. These are useful to reference artifacts hosted
-    /// externally (HTTP/HTTPS) instead of embedding files in the test resources.
-    /// </summary>
-    /// <param name="builder">The resource builder for the Microcks resource.</param>
-    /// <param name="remoteArtifactUrls">Remote URLs pointing to artifact definitions.</param>
-    /// <returns>The same <see cref="IResourceBuilder{MicrocksResource}"/> instance for chaining.</returns>
-    public static IResourceBuilder<MicrocksResource> WithMainRemoteArtifacts(this IResourceBuilder<MicrocksResource> builder, params string[] remoteArtifactUrls)
-    {
-        foreach (var remoteArtifactUrl in remoteArtifactUrls)
-        {
-            builder.WithAnnotation(new MainRemoteArtifactAnnotation(remoteArtifactUrl));
-        }
-
-        return builder;
-    }
-
-    /// <summary>
     /// Adds one or more secondary artifact file annotations to the Microcks
     /// resource. Secondary artifacts may contain supplementary data (for
     /// example Postman collections) that complement main artifacts.
@@ -163,6 +147,83 @@ public static class MicrocksBuilderExtensions
         return Path.IsPathRooted(sourcePath)
             ? sourcePath
             : Path.GetFullPath(sourcePath, builder.ApplicationBuilder.AppHostDirectory);
+    }
+
+    /// <summary>
+    /// Adds remote artifact annotations (URLs) to be imported as main artifacts
+    /// by the Microcks resource. These are useful to reference artifacts hosted
+    /// externally (HTTP/HTTPS) instead of embedding files in the test resources.
+    /// </summary>
+    /// <param name="builder">The resource builder for the Microcks resource.</param>
+    /// <param name="remoteArtifactUrls">Remote URLs pointing to artifact definitions.</param>
+    /// <returns>The same <see cref="IResourceBuilder{MicrocksResource}"/> instance for chaining.</returns>
+    [Obsolete("Use WithMainRemoteArtifacts with RemoteArtifact instances instead. This method will be removed in future releases.")]
+    public static IResourceBuilder<MicrocksResource> WithMainRemoteArtifacts(
+        this IResourceBuilder<MicrocksResource> builder, params string[] remoteArtifactUrls)
+    {
+        var remoteArtifacts = remoteArtifactUrls.Select(url => new RemoteArtifact(url));
+        return builder.WithMainRemoteArtifacts(remoteArtifacts.ToArray());
+    }
+
+    /// <summary>
+    /// Adds remote artifact annotations to be imported as main artifacts
+    /// by the Microcks resource. These are useful to reference artifacts hosted
+    /// externally (HTTP/HTTPS) instead of embedding files in the test resources.
+    /// </summary>
+    /// <param name="builder">The resource builder for the Microcks resource.</param>
+    /// <param name="remoteArtifacts">Remote artifacts to import.</param>
+    /// <returns>The same <see cref="IResourceBuilder{MicrocksResource}"/> instance for chaining.</returns>
+    public static IResourceBuilder<MicrocksResource> WithMainRemoteArtifacts(
+        this IResourceBuilder<MicrocksResource> builder, params RemoteArtifact[] remoteArtifacts)
+    {
+        foreach (var remoteArtifact in remoteArtifacts)
+        {
+            builder.WithAnnotation(new MainRemoteArtifactAnnotation(remoteArtifact));
+        }
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds remote artifact annotations (URLs) to be imported as secondary artifacts
+    /// by the Microcks resource. These are useful to reference artifacts hosted
+    /// externally (HTTP/HTTPS) instead of embedding files in the test resources.
+    /// </summary>
+    /// <param name="builder">The resource builder for the Microcks resource.</param>
+    /// <param name="remoteArtifacts">Remote artifacts to import.</param>
+    /// <returns>The same <see cref="IResourceBuilder{MicrocksResource}"/> instance for chaining.</returns>
+    public static IResourceBuilder<MicrocksResource> WithSecondaryRemoteArtifacts(
+        this IResourceBuilder<MicrocksResource> builder, params RemoteArtifact[] remoteArtifacts)
+    {
+        foreach (var remoteArtifact in remoteArtifacts)
+        {
+            builder.WithAnnotation(new SecondaryRemoteArtifactAnnotation(remoteArtifact));
+        }
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds one or more secrets to the Microcks resource.
+    /// </summary>
+    /// <param name="builder">The resource builder for the Microcks resource.</param>
+    /// <param name="configureSecrets">Delegates to configure each secret.</param>
+    /// <returns>The same <see cref="IResourceBuilder{MicrocksResource}"/> instance for chaining.</returns>
+    public static IResourceBuilder<MicrocksResource> WithSecrets(
+        this IResourceBuilder<MicrocksResource> builder,
+        params Action<SecretBuilder>[] configureSecrets)
+    {
+        foreach (var configure in configureSecrets)
+        {
+            var secretBuilder = new SecretBuilder();
+            // Apply user configuration
+            configure(secretBuilder);
+
+            var secretResource = secretBuilder.Build(builder);
+            // Add secret resource to the application but exclude it from the manifest
+            builder.ApplicationBuilder.AddResource(secretResource)
+                .ExcludeFromManifest();
+        }
+        return builder;
     }
 
     /// <summary>
