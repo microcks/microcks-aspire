@@ -413,13 +413,13 @@ This section lists the features related to Microcks initialization, usage and te
 
 | Feature | Support |
 | --- | --- |
-| Secret creation | ❌ |
+| Secret creation | ✅ |
 | Snapshot restoration | ✅ |
 | Local files (primary) | ✅ |
 | Local files (secondary) | ✅ |
 | Remote urls (primary) | ✅ |
-| Remote urls (secondary) | ❌ |
-| Remote urls with Secret | ❌ |
+| Remote urls (secondary) | ✅ |
+| Remote urls with Secret | ✅ |
 | Enable DEBUG log | ✅ |
 
 ### Accessing endpoints
