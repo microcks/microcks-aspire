@@ -19,7 +19,7 @@ namespace Microcks.Aspire.Clients;
 
 /// <summary>
 /// Aggregates all Microcks API endpoint interfaces into a single comprehensive interface.
-/// This interface combines upload, download, import, health check, test, and metrics capabilities.
+/// This interface combines upload, download, import, health check, test, secret, and metrics capabilities.
 /// </summary>
 public interface IMicrocksEndpoint :
     IUploadArtifactEndpoint,
@@ -27,7 +27,8 @@ public interface IMicrocksEndpoint :
     IImportArtifactEndpoint,
     IHealthCheckEndpoint,
     ITestEndpoint,
-    IMetricsInvocationEndpoint
+    IMetricsInvocationEndpoint,
+    ISecretEndpoint
 {
     // This interface aggregates all the clients needed for Microcks operations.
     // It can be extended with more clients as needed.

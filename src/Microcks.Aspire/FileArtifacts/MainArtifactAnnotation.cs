@@ -27,7 +27,7 @@ internal sealed class MainArtifactAnnotation : IResourceAnnotation
 
     public MainArtifactAnnotation(string sourcePath)
     {
-        ArgumentNullException.ThrowIfNull(sourcePath, nameof(sourcePath));
+        ArgumentNullException.ThrowIfNull(sourcePath);
 
         if (!File.Exists(sourcePath))
         {

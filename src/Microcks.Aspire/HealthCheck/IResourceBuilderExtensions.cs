@@ -41,16 +41,15 @@ public static class IResourceBuilderExtensions
     public static IResourceBuilder<T> WaitForConsoleOutput<T>(this IResourceBuilder<T> builder, string outputSubstring, TimeSpan? timeout = null)
         where T : ContainerResource
     {
-        ArgumentNullException.ThrowIfNull(builder, nameof(builder));
+        ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(outputSubstring, nameof(outputSubstring));
 
         var applicationBuilder = builder.ApplicationBuilder;
         string healthCheckName = $"wait-for-output-health-check-{builder.Resource.Name}";
-        //
         var healthCheck = new WaitForOutputHealthCheck(builder.Resource, applicationBuilder.ExecutionContext, outputSubstring);
         applicationBuilder.Services.AddHealthChecks().AddAsyncCheck(healthCheckName, async ct =>
         {
-            var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            using var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cancellationToken.CancelAfter(timeout ?? TimeSpan.FromSeconds(30));
 
             var healthCheckResult = await healthCheck.CheckHealthAsync(new HealthCheckContext(), cancellationToken.Token)

@@ -15,27 +15,24 @@
 //
 //
 
-using System;
-using System.IO;
-using Aspire.Hosting.ApplicationModel;
-
-namespace Microcks.Aspire.FileArtifacts;
+namespace Microcks.Aspire.RemoteArtifacts;
 
 /// <summary>
-/// Represents a secondary artifact annotation.
+/// Represents a remote artifact to be imported by Microcks.
 /// </summary>
-internal sealed class SecondaryArtifactAnnotation : IResourceAnnotation
+/// <remarks>
+/// Initializes a new instance of the <see cref="RemoteArtifact"/> class.
+/// </remarks>
+/// <param name="url">The URL of the remote artifact.</param>
+public class RemoteArtifact(string url)
 {
-    public string SourcePath { get; }
+    /// <summary>
+    /// Gets the URL of the remote artifact.
+    /// </summary>
+    public string Url { get; } = url;
 
-    public SecondaryArtifactAnnotation(string sourcePath)
-    {
-        ArgumentNullException.ThrowIfNullOrEmpty(sourcePath);
-        if (!File.Exists(sourcePath))
-        {
-            throw new FileNotFoundException($"Artifact file not found: {sourcePath}");
-        }
-
-        SourcePath = sourcePath;
-    }
+    /// <summary>
+    /// Gets or sets the name of the secret to use for authentication.
+    /// </summary>
+    public string? SecretName { get; set; }
 }
