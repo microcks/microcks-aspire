@@ -87,6 +87,34 @@ var microcks = builder.AddMicrocks("microcks")
     .WithSnapshots("microcks-repository.json");
 ```
 
+### Import from Remote Artifacts
+
+If your artifacts are hosted on a remote server (e.g., GitHub, GitLab), you can use `WithMainRemoteArtifacts` or `WithSecondaryRemoteArtifacts`.
+
+```csharp
+var mainArtifact = new RemoteArtifact("https://raw.githubusercontent.com/microcks/microcks/master/samples/API%20Pastries%20-%200.0.1%20-%20openapi.yaml");
+var secondaryArtifact = new RemoteArtifact("https://raw.githubusercontent.com/microcks/microcks/master/samples/API%20Pastries%20-%200.0.1%20-%20postman.json");
+
+var microcks = builder.AddMicrocks("microcks")
+    .WithMainRemoteArtifacts(mainArtifact)
+    .WithSecondaryRemoteArtifacts(secondaryArtifact);
+```
+
+If the remote repository is private, you can configure a **Secret** to provide authentication:
+
+```csharp
+var gitToken = builder.AddParameter("gitToken", secret: true);
+
+var privateArtifact = new RemoteArtifact("https://raw.githubusercontent.com/...") 
+{ 
+    SecretName = "git-secret" 
+};
+
+var microcks = builder.AddMicrocks("microcks")
+    .WithSecrets(s => s.WithName("git-secret").WithToken(gitToken))
+    .WithMainRemoteArtifacts(privateArtifact);
+```
+
 ### Using mock endpoints for your dependencies
 
 During your test setup, you'd probably need to retrieve mock endpoints provided by Microcks to
