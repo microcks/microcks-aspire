@@ -479,9 +479,8 @@ This section lists the features related to Microcks initialization, usage and te
 | --- | --- |
 | Kafka | ✅ |
 | WebSocket | ✅ |
-| RabbitMQ | ❌ |
 | MQTT | ❌ |
-| AMQP | ❌ |
+| AMQP | ✅ |
 | NATS | ❌ |
 | Google PubSub | ❌ |
 | Amazon SQS | ❌ |
