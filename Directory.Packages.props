@@ -7,6 +7,7 @@
     <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.1.0" />
     <PackageVersion Include="Aspire.RabbitMQ.Client" Version="13.1.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="MQTTnet" Version="5.0.1.1416" />
     <PackageVersion Include="Xunit.V3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageVersion Include="FakeItEasy" Version="9.0.0" />

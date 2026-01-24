@@ -27,6 +27,7 @@ namespace Microcks.Aspire;
 /// </summary>
 public static class MicrocksAsyncMinionExtensions
 {
+    private const string AsyncProtocolsEnvVar = "ASYNC_PROTOCOLS";
 
     /// <summary>
     /// Configures the Microcks Async Minion to connect to a Kafka broker.
@@ -48,14 +49,12 @@ public static class MicrocksAsyncMinionExtensions
         {
             context.EnvironmentVariables["KAFKA_BOOTSTRAP_SERVER"] = $"{kafkaBuilder.Resource.Name}:{port}";
 
-            // If not already set, append KAFKA to ASYNC_PROTOCOLS
+            // Append KAFKA to ASYNC_PROTOCOLS
             // e.g. ASYNC_PROTOCOLS=KAFKA or ASYNC_PROTOCOLS=AMQP,KAFKA
             // ASYNC_PROTOCOLS is a comma-separated list of protocols
-            const string asyncProtocolEnvVar = "ASYNC_PROTOCOLS";
-
-            context.EnvironmentVariables.TryGetValue(asyncProtocolEnvVar, out var existingProtocolsObj);
+            context.EnvironmentVariables.TryGetValue(AsyncProtocolsEnvVar, out var existingProtocolsObj);
             var existingProtocols = existingProtocolsObj as string ?? string.Empty;
-            context.EnvironmentVariables[asyncProtocolEnvVar] = string.IsNullOrWhiteSpace(existingProtocols)
+            context.EnvironmentVariables[AsyncProtocolsEnvVar] = string.IsNullOrWhiteSpace(existingProtocols)
                 ? ",KAFKA"
                 : $"{existingProtocols},KAFKA";
         });
@@ -90,12 +89,56 @@ public static class MicrocksAsyncMinionExtensions
             context.EnvironmentVariables["AMQP_USERNAME"] = username.Resource;
             context.EnvironmentVariables["AMQP_PASSWORD"] = password.Resource;
 
-            const string asyncProtocolEnvVar = "ASYNC_PROTOCOLS";
-            context.EnvironmentVariables.TryGetValue(asyncProtocolEnvVar, out var existingProtocolsObj);
+            context.EnvironmentVariables.TryGetValue(AsyncProtocolsEnvVar, out var existingProtocolsObj);
             var existingProtocols = existingProtocolsObj as string ?? string.Empty;
-            context.EnvironmentVariables[asyncProtocolEnvVar] = string.IsNullOrWhiteSpace(existingProtocols)
+            context.EnvironmentVariables[AsyncProtocolsEnvVar] = string.IsNullOrWhiteSpace(existingProtocols)
                 ? ",AMQP"
                 : $"{existingProtocols},AMQP";
+        });
+
+        microcksBuilder.WaitFor(brokerBuilder);
+
+        return microcksBuilder;
+    }
+
+    /// <summary>
+    /// Configures the Microcks Async Minion to connect to an MQTT broker.
+    /// </summary>
+    /// <param name="microcksBuilder">The resource builder for the Microcks Async Minion resource.</param>
+    /// <param name="brokerBuilder">The resource builder for the MQTT broker resource.</param>
+    /// <param name="port">The port on which the MQTT broker is exposed. Defaults to 1883.</param>
+    /// <param name="username">Optional username parameter for authentication.</param>
+    /// <param name="password">Optional password parameter for authentication.</param>
+    /// <returns>The same <see cref="IResourceBuilder{MicrocksAsyncMinionResource}"/> instance for chaining.</returns>
+    public static IResourceBuilder<MicrocksAsyncMinionResource> WithMqttConnection(
+        this IResourceBuilder<MicrocksAsyncMinionResource> microcksBuilder,
+        IResourceBuilder<IResource> brokerBuilder,
+        int port = 1883,
+        IResourceBuilder<ParameterResource>? username = null,
+        IResourceBuilder<ParameterResource>? password = null)
+    {
+        ArgumentNullException.ThrowIfNull(microcksBuilder, nameof(microcksBuilder));
+        ArgumentNullException.ThrowIfNull(brokerBuilder, nameof(brokerBuilder));
+
+        microcksBuilder.WithEnvironment(context =>
+        {
+            context.EnvironmentVariables["MQTT_SERVER"] = $"{brokerBuilder.Resource.Name}:{port}";
+
+            if (username != null)
+            {
+                context.EnvironmentVariables["MQTT_USERNAME"] = username.Resource;
+            }
+
+            if (password != null)
+            {
+                context.EnvironmentVariables["MQTT_PASSWORD"] = password.Resource;
+            }
+
+            context.EnvironmentVariables.TryGetValue(AsyncProtocolsEnvVar, out var existingProtocolsObj);
+            var existingProtocols = existingProtocolsObj as string ?? string.Empty;
+            context.EnvironmentVariables[AsyncProtocolsEnvVar] = string.IsNullOrWhiteSpace(existingProtocols)
+                ? ",MQTT"
+                : $"{existingProtocols},MQTT";
         });
 
         microcksBuilder.WaitFor(brokerBuilder);

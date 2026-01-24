@@ -7,6 +7,7 @@
     <PackageReference Include="Aspire.Hosting.RabbitMQ" />
     <PackageReference Include="Aspire.RabbitMQ.Client" />
     <PackageReference Include="FakeItEasy" />
+    <PackageReference Include="MQTTnet" />
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

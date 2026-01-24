@@ -89,4 +89,21 @@ public class MicrocksAsyncMinionResource(string name) : ContainerResource(name)
             version,
             operationName.Replace("/", "-"));
     }
+
+    /// <summary>
+    /// Generates an MQTT mock topic name based on the provided service, version, and operation name.
+    /// </summary>
+    /// <param name="service">The name of the service.</param>
+    /// <param name="version">The version of the service.</param>
+    /// <param name="operationName">The name of the operation, which may start with SUBSCRIBE or PUBLISH.</param>
+    /// <returns>A formatted MQTT mock topic name.</returns>
+    public string GetMqttMockTopic(string service, string version, string operationName)
+    {
+        operationName = ExtractOperationName(operationName);
+
+        return string.Format(DestinationPattern,
+            service.Replace(" ", "").Replace("-", ""),
+            version.Replace(" ", ""),
+            operationName);
+    }
 }
