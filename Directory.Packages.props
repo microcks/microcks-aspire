@@ -10,7 +10,7 @@
     <PackageVersion Include="MQTTnet" Version="5.0.1.1416" />
     <PackageVersion Include="Xunit.V3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="FakeItEasy" Version="9.0.0" />
+    <PackageVersion Include="FakeItEasy" Version="9.0.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="MartinCostello.Logging.XUnit.v3" Version="0.7.0" />
     <PackageVersion Include="xunit.v3.extensibility.core" Version="3.2.2" />
