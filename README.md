@@ -433,6 +433,110 @@ foreach (var eventItem in events)
 
 This allows developers to perform detailed validation of the async messages exchanged during contract testing.
 
+### Using MQTT with Microcks
+
+Microcks Aspire now supports MQTT protocol for asynchronous messaging. You can connect the Microcks Async Minion to any MQTT broker, including HiveMQ or cloud services like Azure Event Grid.
+
+#### MQTT Setup with HiveMQ
+
+HiveMQ is an enterprise-grade MQTT broker. Here's how to use it:
+
+```csharp
+var builder = DistributedApplication.CreateBuilder(args);
+
+// Add HiveMQ MQTT broker
+var hivemq = builder.AddContainer("hivemq", "hivemq/hivemq-ce", "latest")
+    .WithEndpoint(targetPort: 1883, name: "mqtt");
+
+// Add Microcks with MQTT support
+var microcks = builder.AddMicrocks("microcks")
+    .WithMainArtifacts("pastry-orders-asyncapi.yml")
+    .WithAsyncFeature(minion =>
+    {
+        minion.WithMqttConnection(hivemq, port: 1883);
+    });
+
+builder.Build().Run();
+```
+
+> **💡 Tip:** Using HiveMQ locally is ideal for developing and testing MQTT-based applications before deploying to Azure Event Grid. Azure Event Grid natively supports MQTT v3.1.1 and v5, so your MQTT client code developed with HiveMQ will work seamlessly when migrating to Azure Event Grid in production. This allows you to validate your message flows, topic structures, and application logic in a local environment before moving to the cloud.
+
+#### MQTT with Authentication
+
+If your MQTT broker requires authentication, you can provide credentials:
+
+```csharp
+var builder = DistributedApplication.CreateBuilder(args);
+
+// Create authentication parameters
+var mqttUsername = builder.AddParameter("mqtt-username");
+var mqttPassword = builder.AddParameter("mqtt-password", secret: true);
+
+// Add HiveMQ MQTT broker
+var hivemq = builder.AddContainer("hivemq", "hivemq/hivemq-ce", "latest")
+    .WithEndpoint(targetPort: 1883, name: "mqtt");
+
+// Add Microcks with authenticated MQTT connection
+var microcks = builder.AddMicrocks("microcks")
+    .WithMainArtifacts("pastry-orders-asyncapi.yml")
+    .WithAsyncFeature(minion =>
+    {
+        minion.WithMqttConnection(hivemq, port: 1883, 
+            username: mqttUsername, 
+            password: mqttPassword);
+    });
+
+builder.Build().Run();
+```
+
+#### Retrieving MQTT Mock Topics
+
+Once configured, you can retrieve MQTT mock topics from the Async Minion:
+
+```csharp
+// Retrieve MicrocksAsyncMinionResource from application
+var appModel = app.Services.GetRequiredService<DistributedApplicationModel>();
+var microcksAsyncMinionResource = appModel.GetContainerResources()
+    .OfType<MicrocksAsyncMinionResource>()
+    .Single();
+
+// Get the MQTT topic for mock messages
+string mqttTopic = microcksAsyncMinionResource
+    .GetMqttMockTopic("Pastry orders API", "0.1.0", "SUBSCRIBE pastry/orders");
+// Returns: "PastryordersAPI-0.1.0-pastry-orders"
+
+// Use this topic with your MQTT client library (e.g., MQTTnet, M2Mqtt, etc.)
+```
+
+#### MQTT Contract Testing
+
+You can perform AsyncAPI contract testing with MQTT similar to Kafka:
+
+```csharp
+var testRequest = new TestRequest
+{
+    ServiceId = "Pastry orders API:0.1.0",
+    RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
+    TestEndpoint = "mqtt://hivemq:1883/pastry-orders", // Use MQTT endpoint
+    Timeout = TimeSpan.FromSeconds(5)
+};
+
+var microcksClient = app.CreateMicrocksClient("microcks");
+
+// Start the test
+var taskTestResult = microcksClient.TestEndpointAsync(testRequest, cancellationToken);
+
+// Wait for test initialization
+await Task.Delay(750, cancellationToken);
+
+// Publish your MQTT message using your MQTT client
+// (Example with MQTTnet or other MQTT library)
+
+// Retrieve test results
+TestResult testResult = await taskTestResult;
+Assert.True(testResult.Success);
+```
+
 ## Features
 
 This section lists the features related to Microcks initialization, usage and testing.
@@ -479,7 +583,7 @@ This section lists the features related to Microcks initialization, usage and te
 | --- | --- |
 | Kafka | ✅ |
 | WebSocket | ✅ |
-| MQTT | ❌ |
+| MQTT | ✅ |
 | AMQP | ✅ |
 | NATS | ❌ |
 | Google PubSub | ❌ |
