@@ -5,7 +5,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//  http://www.apache.org/licenses/LICENSE-2.0 
+//  http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,6 +59,46 @@ public static class MicrocksAsyncMinionExtensions
                 ? ",KAFKA"
                 : $"{existingProtocols},KAFKA";
         });
+
+        return microcksBuilder;
+    }
+
+    /// <summary>
+    /// Configures the Microcks Async Minion to connect to an AMQP broker.
+    /// </summary>
+    /// <param name="microcksBuilder">The resource builder for the Microcks Async Minion resource.</param>
+    /// <param name="brokerBuilder">The resource builder for the AMQP broker resource.</param>
+    /// <param name="username">The username parameter for authentication.</param>
+    /// <param name="password">The password parameter for authentication.</param>
+    /// <param name="port">The port on which the AMQP broker is exposed. Defaults to 5672.</param>
+    /// <returns>The same <see cref="IResourceBuilder{MicrocksAsyncMinionResource}"/> instance for chaining.</returns>
+    public static IResourceBuilder<MicrocksAsyncMinionResource> WithAmqpConnection(
+        this IResourceBuilder<MicrocksAsyncMinionResource> microcksBuilder,
+        IResourceBuilder<IResource> brokerBuilder,
+        IResourceBuilder<ParameterResource> username,
+        IResourceBuilder<ParameterResource> password,
+        int port = 5672)
+    {
+        ArgumentNullException.ThrowIfNull(microcksBuilder, nameof(microcksBuilder));
+        ArgumentNullException.ThrowIfNull(brokerBuilder, nameof(brokerBuilder));
+        ArgumentNullException.ThrowIfNull(username, nameof(username));
+        ArgumentNullException.ThrowIfNull(password, nameof(password));
+
+        microcksBuilder.WithEnvironment(context =>
+        {
+            context.EnvironmentVariables["AMQP_SERVER"] = $"{brokerBuilder.Resource.Name}:{port}";
+            context.EnvironmentVariables["AMQP_USERNAME"] = username.Resource;
+            context.EnvironmentVariables["AMQP_PASSWORD"] = password.Resource;
+
+            const string asyncProtocolEnvVar = "ASYNC_PROTOCOLS";
+            context.EnvironmentVariables.TryGetValue(asyncProtocolEnvVar, out var existingProtocolsObj);
+            var existingProtocols = existingProtocolsObj as string ?? string.Empty;
+            context.EnvironmentVariables[asyncProtocolEnvVar] = string.IsNullOrWhiteSpace(existingProtocols)
+                ? ",AMQP"
+                : $"{existingProtocols},AMQP";
+        });
+
+        microcksBuilder.WaitFor(brokerBuilder);
 
         return microcksBuilder;
     }
