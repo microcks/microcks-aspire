@@ -30,6 +30,6 @@
     <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
   </ItemGroup>
   <ItemGroup Label="SourceLinkPackages">
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.102" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.103" />
   </ItemGroup>
 </Project>
