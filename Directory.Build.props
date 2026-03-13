@@ -6,7 +6,7 @@
 		<VersionSuffix>alpha</VersionSuffix>
 
 		<DefaultTargetFramework>net10.0</DefaultTargetFramework>
-		<TargetFrameworks>$(DefaultTargetFramework);net9.0</TargetFrameworks>
+		<TargetFrameworks>$(DefaultTargetFramework)</TargetFrameworks>
 
 		<Description>Microcks.Aspire for .NET</Description>
 		<Authors>Sébastien DEGODEZ</Authors>
