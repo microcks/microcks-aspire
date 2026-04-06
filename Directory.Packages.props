@@ -20,7 +20,6 @@
     </PackageVersion>
   </ItemGroup>
   <ItemGroup Label="AspirePackages">
-    <PackageVersion Include="Aspire.AppHost.Sdk" Version="13.0.0" />
     <PackageVersion Include="Aspire.Hosting" Version="13.0.2" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.0.0" />
     <PackageVersion Include="Aspire.Hosting.Kafka" Version="13.0.2" />
