@@ -4,8 +4,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup Label="TestPackages">
-    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.1.0" />
-    <PackageVersion Include="Aspire.RabbitMQ.Client" Version="13.1.0" />
+    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="13.2.2" />
+    <PackageVersion Include="Aspire.RabbitMQ.Client" Version="13.2.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="MQTTnet" Version="5.1.0.1559" />
     <PackageVersion Include="Xunit.V3" Version="3.2.2" />
@@ -20,10 +20,10 @@
     </PackageVersion>
   </ItemGroup>
   <ItemGroup Label="AspirePackages">
-    <PackageVersion Include="Aspire.Hosting" Version="13.0.2" />
-    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.0.0" />
-    <PackageVersion Include="Aspire.Hosting.Kafka" Version="13.0.2" />
-    <PackageVersion Include="Aspire.Confluent.Kafka" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Hosting" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Hosting.Testing" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Hosting.Kafka" Version="13.2.2" />
+    <PackageVersion Include="Aspire.Confluent.Kafka" Version="13.2.2" />
   </ItemGroup>
   <ItemGroup Label="MainPackages">
     <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
