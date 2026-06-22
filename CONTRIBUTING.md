@@ -76,6 +76,31 @@ Prefix that follows specification is not enough though. Remember that the title 
 
 Happy contributing :heart:
 
+## .NET Aspire SDK versioning
+
+The `Aspire.AppHost.Sdk` version is managed centrally in the `msbuild-sdks` section of [`global.json`](global.json):
+
+```json
+{
+  "msbuild-sdks": {
+    "Aspire.AppHost.Sdk": "13.x.x"
+  }
+}
+```
+
+AppHost project files (`.csproj`) reference the SDK **without** a version:
+
+```xml
+<Project Sdk="Aspire.AppHost.Sdk">
+```
+
+This setup ensures:
+
+- **Dependabot** can automatically update `Aspire.AppHost.Sdk` (via the `dotnet-sdk` ecosystem) in the same way it updates the Aspire NuGet packages (via the `nuget` ecosystem).
+- There is a single source of truth for the SDK version, avoiding `NU1605` package downgrade errors that arise when the hardcoded SDK version in a `.csproj` diverges from the NuGet package versions.
+
+When upgrading Aspire, update both `global.json` (`msbuild-sdks`) and `Directory.Packages.props` (Aspire `PackageVersion` entries) to the same version.
+
 ## License
 
 When you submit changes, your submissions are understood to be under the same [Apache 2.0 License](https://github.com/microcks/microcks-aspire/blob/master/LICENSE) that covers the project. Feel free to [contact the maintainers](https://github.com/microcks/.github/blob/main/MAINTAINERS.md) if that's a concern.
