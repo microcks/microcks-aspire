@@ -102,6 +102,51 @@ public static class MicrocksAsyncMinionExtensions
     }
 
     /// <summary>
+    /// Configures the Microcks Async Minion to connect to a NATS broker.
+    /// </summary>
+    /// <param name="microcksBuilder">The resource builder for the Microcks Async Minion resource.</param>
+    /// <param name="brokerBuilder">The resource builder for the NATS broker resource.</param>
+    /// <param name="port">The port on which NATS is exposed. Defaults to 4222.</param>
+    /// <param name="username">Optional username parameter for authentication.</param>
+    /// <param name="password">Optional password parameter for authentication.</param>
+    /// <returns>The same <see cref="IResourceBuilder{MicrocksAsyncMinionResource}"/> instance for chaining.</returns>
+    public static IResourceBuilder<MicrocksAsyncMinionResource> WithNatsConnection(
+        this IResourceBuilder<MicrocksAsyncMinionResource> microcksBuilder,
+        IResourceBuilder<IResource> brokerBuilder,
+        int port = 4222,
+        IResourceBuilder<ParameterResource>? username = null,
+        IResourceBuilder<ParameterResource>? password = null)
+    {
+        ArgumentNullException.ThrowIfNull(microcksBuilder, nameof(microcksBuilder));
+        ArgumentNullException.ThrowIfNull(brokerBuilder, nameof(brokerBuilder));
+
+        microcksBuilder.WithEnvironment(context =>
+        {
+            context.EnvironmentVariables["NATS_SERVER"] = $"{brokerBuilder.Resource.Name}:{port}";
+
+            if (username != null)
+            {
+                context.EnvironmentVariables["NATS_USERNAME"] = username.Resource;
+            }
+
+            if (password != null)
+            {
+                context.EnvironmentVariables["NATS_PASSWORD"] = password.Resource;
+            }
+
+            context.EnvironmentVariables.TryGetValue(AsyncProtocolsEnvVar, out var existingProtocolsObj);
+            var existingProtocols = existingProtocolsObj as string ?? string.Empty;
+            context.EnvironmentVariables[AsyncProtocolsEnvVar] = string.IsNullOrWhiteSpace(existingProtocols)
+                ? ",NATS"
+                : $"{existingProtocols},NATS";
+        });
+
+        microcksBuilder.WaitFor(brokerBuilder);
+
+        return microcksBuilder;
+    }
+
+    /// <summary>
     /// Configures the Microcks Async Minion to connect to an MQTT broker.
     /// </summary>
     /// <param name="microcksBuilder">The resource builder for the Microcks Async Minion resource.</param>

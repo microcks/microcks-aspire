@@ -537,6 +537,79 @@ TestResult testResult = await taskTestResult;
 Assert.True(testResult.Success);
 ```
 
+### Using NATS with Microcks
+
+Microcks Aspire also supports the NATS protocol for asynchronous messaging. Connect the Microcks Async Minion to any NATS broker:
+
+```csharp
+var builder = DistributedApplication.CreateBuilder(args);
+
+// Add a NATS broker
+var nats = builder.AddNats("nats");
+
+// Add Microcks with NATS support
+var microcks = builder.AddMicrocks("microcks")
+    .WithMainArtifacts("pastry-orders-asyncapi.yml")
+    .WithAsyncFeature(minion =>
+    {
+        minion.WithNatsConnection(nats, port: 4222);
+    });
+
+builder.Build().Run();
+```
+
+Your AsyncAPI contract needs an explicit `nats` binding on the operation for Microcks to detect it and start publishing mock messages to it, e.g.:
+
+```yaml
+channels:
+  pastry/orders:
+    subscribe:
+      message:
+        $ref: '#/components/messages/PastryOrder'
+      bindings:
+        nats:
+          queue: pastry-orders
+```
+
+If your NATS broker requires authentication, provide credentials the same way as for MQTT:
+
+```csharp
+var natsUsername = builder.AddParameter("nats-username");
+var natsPassword = builder.AddParameter("nats-password", secret: true);
+
+var microcks = builder.AddMicrocks("microcks")
+    .WithMainArtifacts("pastry-orders-asyncapi.yml")
+    .WithAsyncFeature(minion =>
+    {
+        minion.WithNatsConnection(nats, port: 4222,
+            username: natsUsername,
+            password: natsPassword);
+    });
+```
+
+#### NATS Contract Testing
+
+```csharp
+var testRequest = new TestRequest
+{
+    ServiceId = "Pastry orders API:0.1.0",
+    RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
+    TestEndpoint = "nats://nats:4222/pastry-orders", // Use NATS endpoint
+    Timeout = TimeSpan.FromSeconds(5)
+};
+
+var microcksClient = app.CreateMicrocksClient("microcks");
+
+var taskTestResult = microcksClient.TestEndpointAsync(testRequest, cancellationToken);
+
+await Task.Delay(750, cancellationToken);
+
+// Publish your NATS message using your NATS client (e.g. NATS.Net)
+
+TestResult testResult = await taskTestResult;
+Assert.True(testResult.Success);
+```
+
 ## Features
 
 This section lists the features related to Microcks initialization, usage and testing.
@@ -585,7 +658,7 @@ This section lists the features related to Microcks initialization, usage and te
 | WebSocket | ✅ |
 | MQTT | ✅ |
 | AMQP | ✅ |
-| NATS | ❌ |
+| NATS | ✅ |
 | Google PubSub | ❌ |
 | Amazon SQS | ❌ |
 | Amazon SNS | ❌ |

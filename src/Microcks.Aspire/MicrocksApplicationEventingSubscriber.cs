@@ -193,9 +193,9 @@ internal sealed class MicrocksApplicationEventingSubscriber
             return;
         }
 
-        foreach (var remoteUrl in remoteArtifactAnnotations.Select(a => a.RemoteArtifact.Url))
+        foreach (var remoteArtifact in remoteArtifactAnnotations.Select(a => a.RemoteArtifact))
         {
-            await microcksClient.ImportRemoteArtifactAsync(remoteUrl, mainArtifact, cancellationToken);
+            await microcksClient.ImportRemoteArtifactAsync(remoteArtifact.Url, mainArtifact, remoteArtifact.SecretName, cancellationToken);
         }
     }
 
