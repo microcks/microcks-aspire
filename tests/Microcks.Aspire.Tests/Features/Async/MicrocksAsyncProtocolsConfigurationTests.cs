@@ -192,6 +192,107 @@ public sealed class MicrocksAsyncProtocolsConfigurationTests
     }
 
     /// <summary>
+    /// When only NATS is configured, then ASYNC_PROTOCOLS contains NATS.
+    /// </summary>
+    [Fact]
+    public void WhenOnlyNatsIsConfigured_ThenAsyncProtocolsContainsNats()
+    {
+        // Arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        var nats = builder.AddContainer("nats", "nats", "latest")
+            .WithEndpoint(targetPort: 4222, name: "nats");
+
+        var microcks = builder.AddMicrocks("microcks")
+            .WithMainArtifacts(Path.Combine(AppContext.BaseDirectory, "resources", "pastry-orders-asyncapi.yml"))
+            .WithAsyncFeature(minion =>
+            {
+                minion.WithNatsConnection(nats, port: 4222);
+            });
+
+        // Act
+        var asyncMinionResource = builder.Resources.OfType<MicrocksAsyncMinionResource>().Single();
+        var envVars = GetEnvironmentVariables(asyncMinionResource);
+
+        // Assert
+        Assert.True(envVars.ContainsKey("ASYNC_PROTOCOLS"));
+        Assert.Equal("nats:4222", envVars["NATS_SERVER"]);
+        Assert.False(envVars.ContainsKey("NATS_USERNAME"));
+        Assert.False(envVars.ContainsKey("NATS_PASSWORD"));
+
+        var protocols = envVars["ASYNC_PROTOCOLS"].Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        Assert.Contains("NATS", protocols);
+        Assert.DoesNotContain("KAFKA", protocols);
+        Assert.Single(protocols);
+    }
+
+    /// <summary>
+    /// When NATS is configured with credentials, then NATS_USERNAME/NATS_PASSWORD are set.
+    /// </summary>
+    [Fact]
+    public void WhenNatsIsConfiguredWithCredentials_ThenUsernameAndPasswordAreSet()
+    {
+        // Arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        var nats = builder.AddContainer("nats", "nats", "latest")
+            .WithEndpoint(targetPort: 4222, name: "nats");
+        var username = builder.AddParameter("nats-username");
+        var password = builder.AddParameter("nats-password", secret: true);
+
+        var microcks = builder.AddMicrocks("microcks")
+            .WithMainArtifacts(Path.Combine(AppContext.BaseDirectory, "resources", "pastry-orders-asyncapi.yml"))
+            .WithAsyncFeature(minion =>
+            {
+                minion.WithNatsConnection(nats, port: 4222, username: username, password: password);
+            });
+
+        // Act
+        var asyncMinionResource = builder.Resources.OfType<MicrocksAsyncMinionResource>().Single();
+        var envVars = GetEnvironmentVariables(asyncMinionResource);
+
+        // Assert - values are ParameterResource references, resolved later by the Aspire host
+        Assert.True(envVars.ContainsKey("NATS_USERNAME"), "NATS_USERNAME should be set when credentials are provided");
+        Assert.True(envVars.ContainsKey("NATS_PASSWORD"), "NATS_PASSWORD should be set when credentials are provided");
+    }
+
+    /// <summary>
+    /// When NATS and Kafka are configured together, then ASYNC_PROTOCOLS contains both.
+    /// </summary>
+    [Fact]
+    public void WhenNatsAndKafkaAreConfigured_ThenAsyncProtocolsContainsAll()
+    {
+        // Arrange
+        var builder = DistributedApplication.CreateBuilder();
+
+        var kafka = builder.AddKafka("kafka");
+        var nats = builder.AddContainer("nats", "nats", "latest")
+            .WithEndpoint(targetPort: 4222, name: "nats");
+
+        var microcks = builder.AddMicrocks("microcks")
+            .WithMainArtifacts(Path.Combine(AppContext.BaseDirectory, "resources", "pastry-orders-asyncapi.yml"))
+            .WithAsyncFeature(minion =>
+            {
+                minion.WithKafkaConnection(kafka, port: 9093);
+                minion.WithNatsConnection(nats, port: 4222);
+            });
+
+        // Act
+        var asyncMinionResource = builder.Resources.OfType<MicrocksAsyncMinionResource>().Single();
+        var envVars = GetEnvironmentVariables(asyncMinionResource);
+
+        // Assert
+        Assert.True(envVars.ContainsKey("ASYNC_PROTOCOLS"));
+
+        var protocols = envVars["ASYNC_PROTOCOLS"].Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        Assert.Contains("KAFKA", protocols);
+        Assert.Contains("NATS", protocols);
+        Assert.Equal(2, protocols.Length);
+    }
+
+    /// <summary>
     /// Helper method to extract environment variables from a resource without starting the app.
     /// </summary>
     private static Dictionary<string, string> GetEnvironmentVariables(MicrocksAsyncMinionResource resource)
