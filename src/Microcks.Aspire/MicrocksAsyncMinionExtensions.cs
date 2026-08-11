@@ -135,9 +135,9 @@ public static class MicrocksAsyncMinionExtensions
             }
 
             context.EnvironmentVariables.TryGetValue(AsyncProtocolsEnvVar, out var existingProtocolsObj);
-            var existingProtocols = existingProtocolsObj as string ?? string.Empty;
+            var existingProtocols = (existingProtocolsObj as string ?? string.Empty).Trim(',');
             context.EnvironmentVariables[AsyncProtocolsEnvVar] = string.IsNullOrWhiteSpace(existingProtocols)
-                ? ",NATS"
+                ? "NATS"
                 : $"{existingProtocols},NATS";
         });
 
