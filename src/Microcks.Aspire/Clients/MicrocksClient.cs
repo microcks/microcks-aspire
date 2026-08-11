@@ -128,6 +128,10 @@ internal sealed class MicrocksClient : IMicrocksClient
     }
 
     /// <inheritdoc />
+    public Task ImportRemoteArtifactAsync(string remoteUrl, bool mainArtifact, CancellationToken cancellationToken)
+        => ImportRemoteArtifactAsync(remoteUrl, mainArtifact, secretName: null, cancellationToken);
+
+    /// <inheritdoc />
     public async Task ImportRemoteArtifactAsync(string remoteUrl, bool mainArtifact, string? secretName, CancellationToken cancellationToken)
     {
         var result = await _client.DownloadArtifactAsync(mainArtifact, remoteUrl, secretName, cancellationToken);
