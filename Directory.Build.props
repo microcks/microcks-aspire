@@ -18,6 +18,11 @@
 		<RepositoryUrl>https://github.com/microcks/microcks-aspire</RepositoryUrl>
 		<PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
 	</PropertyGroup>
+	<PropertyGroup>
+		<!-- Keep multi-targeting while working around Aspire's missing PickBestRid task.
+		     Remove when https://github.com/microsoft/aspire/issues/17912 is fixed in the SDK version used here. -->
+		<_AspireUseSdkPickBestRid>false</_AspireUseSdkPickBestRid>
+	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
