@@ -224,7 +224,7 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
             ServiceId = "Pastry orders API:0.1.0",
             RunnerType = TestRunnerType.ASYNC_API_SCHEMA,
             TestEndpoint = "kafka://kafka:9093/pastry-orders", // 9093 is the internal Docker network port
-            Timeout = TimeSpan.FromSeconds(6)
+            Timeout = TimeSpan.FromSeconds(10)
         };
 
         var microcksClient = _fixture.App.CreateMicrocksClient(_fixture.MicrocksResource.Name);
@@ -237,8 +237,8 @@ public sealed class MicrocksKafkaTests(ITestOutputHelper testOutputHelper, Micro
         var taskTestResult = microcksClient.TestEndpointAsync(testRequest, TestContext.Current.CancellationToken);
 
         _logger.LogInformation("Test started, waiting a bit to let it initialize...");
-        // Wait a bit to let the test initialize
-        await Task.Delay(750, TestContext.Current.CancellationToken);
+        // Wait for the Async Minion consumer to get its partition assigned, otherwise first messages are missed
+        await Task.Delay(3000, TestContext.Current.CancellationToken);
 
         _logger.LogInformation("Starting to send 5 bad messages...");
 
