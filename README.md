@@ -11,7 +11,7 @@ Aspire extension that enables hosting Microcks as a service, managing mocks for 
 
 ## Build Status
 
-Current development version is `0.1.0`.
+Current development version is `0.3.0`.
 
 #### Sonarcloud Quality metrics
 
